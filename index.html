@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+  <title>Distribtr</title>
+<script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <div id="content">
+    <button id="send" style="display: none;">Send Message</button>
+    <p>DistribtrID<span id="distribtrID"></span></p>
+    <p>Connected To:<span id="peerDistribtrID"></span></p>
+  </div>
+</body>
+<script>
+window.addEventListener('load', function() {
+  var distribtrID = 0;
+  var peerDistribtrID = 0;
+  var firstTry = true;
+  var firstTryPeer = true;
+  var peer;
+  var peerConn;
+  var connected = false;
+
+  function sendMessage() {
+    var dataToSend = {
+      "src_peer_id": distribtrID,
+      "dest_peer_id": peerDistribtrID,
+      "message": "Hello from "+distribtrID +" trying to send to "+ peerDistribtrID
+    };
+    console.log(dataToSend);
+    console.log('sending');
+    peerConn.send(JSON.stringify(dataToSend));
+  }
+
+
+  function reconnectPeer() {
+    if (distribtrID === peerDistribtrID) {
+      connected = false;
+      peerDistribtrID++;
+      reconnectPeer();
+      return;
+    }
+    firstTryPeer = false;
+    var peerError = false;
+    console.log("attempting peer connection "+peerDistribtrID);
+    peerConn = peer.connect('Distribtr' + peerDistribtrID);
+    // on open will be launch when you successfully connect to PeerServer
+    console.log(peerConn);
+    peerConn.on('open', function(){
+      // here you have conn.id
+      console.log("attempting connection, reconnectPeer open");
+      console.log(distribtrID);
+      var displayID = document.getElementById("distribtrID");
+      var connectionDisplayID = document.getElementById("peerDistribtrID");
+      displayID.innerHTML = distribtrID;
+      connectionDisplayID.innerHTML = peerDistribtrID;
+      var sendButton = document.getElementById("send");
+      sendButton.style.display = "inline";
+      sendButton.addEventListener("click", sendMessage);
+      connected = true;
+    });
+    peerConn.on('error', function(err){
+      console.log("got an error peerConn");
+      peerError = true;
+      connected = false;
+      console.log(err);
+      setTimeout(function() {
+        peerDistribtrID++;
+        reconnectPeer();
+        return;
+      }, 2000);
+      return;
+    });
+    //peerConn.send('hi from server');
+    if (peerError) {
+      return;
+    }
+
+  }
+
+
+  function reconnectSetup() {
+    firstTry = false;
+    console.log("reconnectSetup");
+    namespaceID = "Distribtr" + distribtrID
+    peer = new Peer(namespaceID);
+    peer.on('open', function(namespaceID) {
+      console.log('reconnection My peer ID is: ' + namespaceID);
+      localStorage.setItem("sequential_peer_id", namespaceID);
+      // send event for trying to connect to other peers
+      peerDistribtrID++;
+      reconnectPeer();
+    });
+    peer.on('connection', function(conn) {
+      conn.on('data', function(data){
+        // Will print 'hi!'
+        console.log(data);
+        if (connected) {
+          var dataObj = JSON.parse(data);
+          if (dataObj.src_peer_id !== peerDistribtrID
+              && dataObj.src_peer_id !== distribtrID) {
+            var newDataObj = dataObj;
+            newDataObj.src_peer_id = distribtrID;
+            newDataObj.dest_peer_id = peerDistribtrID;
+            peerConn.send(JSON.stringify(newDataObj));
+          }
+        }
+
+      });
+    });
+    peer.on('error', function(err) {
+      connected = false;
+      console.log("got an error reconnectSetup");
+      console.log(err);
+      console.log(String(err));
+      console.log(err.Error);
+      distribtrID++;
+      setTimeout(function() {
+        reconnectSetup();
+      }, 1000);
+      return;
+    });
+
+  }
+
+
+  var sequential_peer_id;
+
+
+  if (localStorage.getItem("sequential_peer_id") === null) {
+    peer = new Peer();
+  } else {
+    sequential_peer_id = localStorage.getItem("sequential_peer_id");
+    peer = new Peer(sequential_peer_id);
+  }
+
+  var fresh_peer_id;
+  peer.on('open', function(id) {
+    fresh_peer_id = id;
+    console.log('first connection My peer ID is: ' + id);
+    var conn = peer.connect('Distribtr' + peerDistribtrID);
+    // on open will be launch when you successfully connect to PeerServer
+    console.log(conn);
+    conn.on('open', function(){
+      // here you have conn.id
+      console.log("attempting connection, reconnectPeer open");
+      console.log(distribtrID);
+      var sendButton = document.getElementById("send");
+      sendButton.style.display = "inline";
+      sendButton.addEventListener("click", sendMessage);
+      connected = true;
+    });
+    conn.on('error', function(){
+      if (firstTryPeer) {
+        console.log("got an error");
+        reconnectPeer();
+      }
+      return;
+    });
+  });
+
+  peer.on('error', function(err) {
+    console.log(err);
+    console.log(String(err));
+    console.log(err.Error);
+    if (firstTry === true) {
+      distribtrID++;
+      reconnectSetup(distribtrID);
+    }
+  });
+
+
+  peer.on('connection', function(conn) {
+    var errorConn = false;
+    console.log("success conneciton");
+    console.log(conn);
+    conn.on('data', function(data){
+      // Will print 'hi!'
+      console.log(data);
+    });
+    peerConn = peer.connect('Distribtr' + peerDistribtrID);
+    // on open will be launch when you successfully connect to PeerServer
+    console.log(peerConn);
+    peerConn.on('open', function(){
+      // here you have conn.id
+      console.log("attempting connection, reconnectPeer open");
+      console.log(distribtrID);
+      var sendButton = document.getElementById("send");
+      sendButton.style.display = "inline";
+      sendButton.addEventListener("click", sendMessage);
+      connected = true;
+    });
+    peerConn.on('error', function(){
+      errorConn = true;
+      console.log("got an error peerConn");
+      peer.destroy();
+      reconnectSetup();
+      return
+    });
+    if (errorConn) {
+      return;
+    }
+  });
+})
+</script>
+</html>
