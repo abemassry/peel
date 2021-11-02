@@ -26,13 +26,14 @@ window.addEventListener('load', function() {
   var peer;
   var peerConn;
   var connected = false;
-  var 
 
   function sendMessage() {
     var dataToSend = {
       "src_peer_id": distribtrID,
       "dest_peer_id": peerDistribtrID,
-      "message": "Hello from "+distribtrID +" trying to send to "+ peerDistribtrID
+      "message": "Hello from "+distribtrID +" trying to send to "+ peerDistribtrID,
+      distribtrID: true,
+      peerDistribtrID: true
     };
     console.log(dataToSend);
     console.log('sending');
