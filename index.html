@@ -19,9 +19,10 @@
 </body>
 <script>
 window.addEventListener('load', function() {
-  const VERSION = "0.1.0";
+  const VERSION = "0_13_0";
   var distribtrID = 0;
   var peerDistribtrID = 0;
+  const peerDistribtrS = {};
   var firstTry = true;
   var firstTryPeer = true;
   var peer;
@@ -30,15 +31,57 @@ window.addEventListener('load', function() {
 
   function sendMessage() {
     var dataToSend = {
+      "originator": distribtrID,
       "src_peer_id": distribtrID,
       "dest_peer_id": peerDistribtrID,
       "message": "Hello from "+distribtrID +" trying to send to "+ peerDistribtrID,
-      [distribtrID]: true,
-      [peerDistribtrID]: true
+      "peers": [distribtrID]
     };
     console.log(dataToSend);
     console.log('sending');
     peerConn.send(JSON.stringify(dataToSend));
+  }
+
+  function pollForMessages() {
+    var dataToSend = {
+      "originator": distribtrID,
+      "src_peer_id": distribtrID,
+      "dest_peer_id": peerDistribtrID,
+      "ping": true
+    };
+    peerConn.send(JSON.stringify(dataToSend));
+  }
+
+  function addSymmetricConnection(newID) {
+    let peerError = false;
+    console.log("attempting peer connection "+newID);
+    const peerConn = peer.connect(VERSION+'_Distribtr' + newID);
+    // on open will be launch when you successfully connect to PeerServer
+    console.log(peerConn);
+    peerConn.on('open', function(){
+      // here you have conn.id
+      console.log("attempting connection, reconnectPeer open");
+      console.log(distribtrID);
+      peerDistribtrS[newID] = peerConn;
+      connected = true;
+    });
+    peerConn.on('error', function(err){
+      console.log("got an error peerConn");
+      peerError = true;
+      connected = false;
+      console.log(err);
+      setTimeout(function() {
+        peerDistribtrID++;
+        reconnectPeer();
+        return;
+      }, 2000);
+      return;
+    });
+    //peerConn.send('hi from server');
+    if (peerError) {
+      return;
+    }
+
   }
 
   function reconnectPeer() {
@@ -65,6 +108,7 @@ window.addEventListener('load', function() {
       var sendButton = document.getElementById("send");
       sendButton.style.display = "inline";
       sendButton.addEventListener("click", sendMessage);
+      setInterval(pollForMessages, 5000);
       connected = true;
     });
     peerConn.on('error', function(err){
@@ -105,14 +149,26 @@ window.addEventListener('load', function() {
         console.log(data);
         if (connected) {
           var dataObj = JSON.parse(data);
-          if (dataObj.src_peer_id !== peerDistribtrID
-              && dataObj.src_peer_id !== distribtrID) {
+          if (dataObj.ping) {
+            console.log(dataObj);
+          } else {
             var newDataObj = dataObj;
             newDataObj.src_peer_id = distribtrID;
             newDataObj.dest_peer_id = peerDistribtrID;
-            newDataObj[distribtrID] = true;
-            newDataObj[peerDistribtrID] = true;
-            peerConn.send(JSON.stringify(newDataObj));
+            if (!newDataObj.peers.includes(peerDistribtrID)) {
+              newDataObj.peers.push(distribtrID);
+              peerConn.send(JSON.stringify(newDataObj));
+              return;
+            }
+            if (dataObj.src_peer_id !== peerDistribtrID) {
+              console.log("new peer found me");
+              console.log(dataObj.src_peer_id);
+              addSymmetricConnection(dataObj.src_peer_id);
+              for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
+                newPeerConn.send(JSON.stringify(newDataObj));
+              }
+              return;
+            }
           }
         }
 
