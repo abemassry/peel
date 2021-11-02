@@ -26,6 +26,7 @@ window.addEventListener('load', function() {
   var peer;
   var peerConn;
   var connected = false;
+  var 
 
   function sendMessage() {
     var dataToSend = {
@@ -37,7 +38,6 @@ window.addEventListener('load', function() {
     console.log('sending');
     peerConn.send(JSON.stringify(dataToSend));
   }
-
 
   function reconnectPeer() {
     if (distribtrID === peerDistribtrID) {
@@ -108,6 +108,8 @@ window.addEventListener('load', function() {
             var newDataObj = dataObj;
             newDataObj.src_peer_id = distribtrID;
             newDataObj.dest_peer_id = peerDistribtrID;
+            newDataObj[distribtrID] = true;
+            newDataObj[peerDistribtrID] = true;
             peerConn.send(JSON.stringify(newDataObj));
           }
         }
