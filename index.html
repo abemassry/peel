@@ -19,6 +19,7 @@
 </body>
 <script>
 window.addEventListener('load', function() {
+  const VERSION = "0.1.0";
   var distribtrID = 0;
   var peerDistribtrID = 0;
   var firstTry = true;
@@ -50,7 +51,7 @@ window.addEventListener('load', function() {
     firstTryPeer = false;
     var peerError = false;
     console.log("attempting peer connection "+peerDistribtrID);
-    peerConn = peer.connect('Distribtr' + peerDistribtrID);
+    peerConn = peer.connect(VERSION+'_Distribtr' + peerDistribtrID);
     // on open will be launch when you successfully connect to PeerServer
     console.log(peerConn);
     peerConn.on('open', function(){
@@ -89,7 +90,7 @@ window.addEventListener('load', function() {
   function reconnectSetup() {
     firstTry = false;
     console.log("reconnectSetup");
-    namespaceID = "Distribtr" + distribtrID
+    namespaceID = VERSION + "_Distribtr" + distribtrID
     peer = new Peer(namespaceID);
     peer.on('open', function(namespaceID) {
       console.log('reconnection My peer ID is: ' + namespaceID);
