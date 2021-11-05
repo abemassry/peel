@@ -19,7 +19,7 @@
 </body>
 <script>
 window.addEventListener('load', function() {
-  const VERSION = "0_25_0";
+  const VERSION = "0_29_0";
   var distribtrID = 0;
   var peerDistribtrID = 0;
   const peerDistribtrS = {};
@@ -40,6 +40,9 @@ window.addEventListener('load', function() {
     console.log(dataToSend);
     console.log('sending');
     peerConn.send(JSON.stringify(dataToSend));
+    for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
+      newPeerConn.send(JSON.stringify(dataToSend));
+    }
   }
 
   function pollForMessages() {
@@ -52,29 +55,30 @@ window.addEventListener('load', function() {
     peerConn.send(JSON.stringify(dataToSend));
   }
 
-  function addSymmetricConnection(newID) {
+  function addSymmetricConnection(newID, newDataObj) {
     let peerError = false;
     console.log("attempting new peer connection "+newID);
-    const peerConn = peer.connect(VERSION+'_Distribtr' + newID);
+    const pConn = peer.connect(VERSION+'_Distribtr' + newID);
     // on open will be launch when you successfully connect to PeerServer
-    console.log(peerConn);
-    peerConn.on('open', function(){
+    console.log(pConn);
+    pConn.on('open', function(){
       // here you have conn.id
       console.log("attempting connection, reconnectPeer open");
       console.log(distribtrID);
-      peerDistribtrS[newID] = peerConn;
+      peerDistribtrS[newID] = pConn;
       console.log("peerDistribtrS:");
       console.log(peerDistribtrS);
       connected = true;
+      pConn.send(JSON.stringify(newDataObj));
     });
-    peerConn.on('error', function(err){
-      console.log("got an error peerConn");
+    pConn.on('error', function(err){
+      console.log("got an error pConn");
       peerError = true;
       connected = false;
       console.log(err);
       return;
     });
-    //peerConn.send('hi from server');
+    //pConn.send('hi from server');
     if (peerError) {
       return;
     }
@@ -151,11 +155,20 @@ window.addEventListener('load', function() {
           if (dataObj.ping) {
             console.log(dataObj);
           } else {
-            // TODO: fan out here if applicable
             let newDataObj = Object.assign({}, dataObj);
             newDataObj.src_peer_id = distribtrID;
             newDataObj.dest_peer_id = peerDistribtrID;
-            if (dataObj.src_peer_id !== peerDistribtrID && dataObj.originator !== peerDistribtrID && dataObj.src_peer_id !== distribtrID) {
+
+            // send fanout
+            for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
+              if (dataObj.src_peer_id !== newID) {
+                console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
+                console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
+                newPeerConn.send(JSON.stringify(newDataObj));
+              }
+            }
+
+            if (dataObj.src_peer_id !== peerDistribtrID && dataObj.originator !== peerDistribtrID && dataObj.src_peer_id !== distribtrID && dataObj.originator !== distribtrID) {
               console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
               console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
               peerConn.send(JSON.stringify(newDataObj));
@@ -172,7 +185,7 @@ window.addEventListener('load', function() {
                 }
               }
               if (idCount === 0 || found === false) {
-                addSymmetricConnection(dataObj.src_peer_id);
+                addSymmetricConnection(dataObj.src_peer_id, newDataObj);
               }
 
               console.log(peerDistribtrS);
