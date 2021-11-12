@@ -12,6 +12,9 @@
   .navbar-light {
     background-color: #F5F5DC !important;
   }
+  .modal-content {
+    background-color: #F5F5DC !important;
+  }
   body {
     background-color: #F5F5DC !important;
   }
@@ -47,22 +50,10 @@
       <div class="col d-none d-sm-none d-md-none d-lg-block">
         About links
       </div>
-      <div class="col-lg-8">
-        <button id="send" style="display: none;">Send Message</button>
-        <p>DistribtrID<span id="distribtrID"></span></p>
-        <p>Connected To:<span id="peerDistribtrID"></span></p>
 
-        <div class="card">
-          <div class="card-header">
-            Featured
-          </div>
-          <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
-          </div>
-        </div>
+      <div id="message-holder" class="col-lg-8">
       </div>
+
       <div class="col d-none d-sm-none d-md-none d-lg-block">
         Util Links
       </div>
@@ -104,23 +95,16 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <button type="button" class="btn close" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          ...<br />
-          ...<br />
-          ...<br />
-          ...<br />
-          ...<br />
-          ...<br />
-          ...<br />
-          ...<br />
+          <textarea class="form-control" id="post-modal-textarea" rows="5"></textarea>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="post-modal-button" data-bs-dismiss="modal" class="btn btn-success">Post</button>
         </div>
       </div>
     </div>
@@ -131,23 +115,26 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
 <script>
-window.addEventListener('load', function() {
-const VERSION = "0_29_0";
-var distribtrID = 0;
-var peerDistribtrID = 0;
-const peerDistribtrS = {};
-var firstTry = true;
-var firstTryPeer = true;
-var peer;
-var peerConn;
+  window.addEventListener('load', function() {
+  const VERSION = "0_32_0";
+  var distribtrID = 0;
+  var peerDistribtrID = 0;
+  const peerDistribtrS = {};
+  var firstTry = true;
+  var firstTryPeer = true;
+  var peer;
+  var peerConn;
   var connected = false;
+  let allData = {};
+  allData["users"] = [];
+  allData["messages"] = {};
 
   function sendMessage() {
     var dataToSend = {
       "originator": distribtrID,
       "src_peer_id": distribtrID,
       "dest_peer_id": peerDistribtrID,
-      "message": "Hello from "+distribtrID +" trying to send to "+ peerDistribtrID,
+      "message": allData,
       "peers": [distribtrID]
     };
     console.log(dataToSend);
@@ -215,13 +202,6 @@ var peerConn;
       // here you have conn.id
       console.log("attempting connection, reconnectPeer open");
       console.log(distribtrID);
-      var displayID = document.getElementById("distribtrID");
-      var connectionDisplayID = document.getElementById("peerDistribtrID");
-      displayID.innerHTML = distribtrID;
-      connectionDisplayID.innerHTML = peerDistribtrID;
-      var sendButton = document.getElementById("send");
-      sendButton.style.display = "inline";
-      sendButton.addEventListener("click", sendMessage);
       //setInterval(pollForMessages, 5000);
       connected = true;
     });
@@ -265,6 +245,8 @@ var peerConn;
           var dataObj = JSON.parse(data);
           console.log("got:");
           console.log(dataObj);
+          allData = dataObj.message;
+          Object.keys(allData.messages).reduceRight(renderMessages, null);
           if (dataObj.ping) {
             console.log(dataObj);
           } else {
@@ -342,6 +324,76 @@ var peerConn;
     peer = new Peer(sequential_peer_id);
   }
   reconnectSetup();
+
+  //
+  // UI interaction section
+  //
+
+  /*
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Special title treatment</h5>
+            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+          </div>
+          <div class="card-footer">
+            Featured
+          </div>
+        </div>
+  */
+  const displayedMessages = {};
+
+  const card = document.createElement("div");
+  card.classList.add("card");
+  const cardBody = document.createElement("div");
+  cardBody.classList.add("card-body");
+  const h6 = document.createElement("h6");
+  h6.classList.add("card-title");
+  const cardText = document.createElement("p");
+  cardText.classList.add("card-text");
+  const cardFooter = document.createElement("div");
+  cardFooter.classList.add("card-footer");
+  cardBody.append(h6);
+  cardBody.append(cardText);
+  card.append(cardBody);
+  card.append(cardFooter);
+
+  const messageHolder = document.getElementById("message-holder");
+
+  function renderMessages(_, index) {
+    if (displayedMessages[index]) {
+      return;
+    }
+    const message = allData.messages[index];
+    const newCard = card.cloneNode(true);
+    newCard.getElementsByClassName("card-title")[0].append(message.user);
+    newCard.getElementsByClassName("card-text")[0].append(message.text);
+    messageHolder.prepend(newCard);
+    displayedMessages[index] = true;
+  }
+  if (allData.messages.length > 0) {
+    console.log("about to render");
+    Object.keys(allData.messages).reduceRight(renderMessages, null);
+  }
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+  document.getElementById("post-modal-button").onclick = function() {
+    const postContent = document.getElementById("post-modal-textarea").value;
+    console.log("post pressed");
+    console.log(postContent);
+    const now = Date.now();
+    const strNow = now.toString() + getRandomInt(9).toString();
+    const nowInt = parseInt(strNow);
+    allData.messages[nowInt] = {
+      "user": "user1",
+      "text": postContent
+    };
+    document.getElementById("post-modal-textarea").value = "";
+    console.log(allData);
+    Object.keys(allData.messages).reduceRight(renderMessages, null);
+    sendMessage();
+  };
 
 })
 </script>
