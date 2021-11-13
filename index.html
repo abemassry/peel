@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Distribtr</title>
+  <title>Peel</title>
   <!-- CSS only -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css">
@@ -14,6 +14,13 @@
   }
   .modal-content {
     background-color: #F5F5DC !important;
+  }
+  #connection-status-icon {
+    color: #e4ba1a;
+  }
+  #connection-status-count {
+    font-size: 13px;
+    text-align: center;
   }
   body {
     background-color: #F5F5DC !important;
@@ -27,7 +34,12 @@
         <svg height="20" width="20">
           <circle cx="10" cy="10" r="5" stroke="black" stroke-width="3" fill="beige" />
         </svg>
+        &nbsp;
+        Peel
       </a>
+      <div id="connection-container">
+        <span id="connection-status">Connecting</span>&nbsp;<i id="connection-status-icon" class="bi bi-circle-fill"></i>&nbsp;<span id="connection-status-count"></span>
+      </div>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
         <!--<span class="navbar-toggler-icon"></span>-->
         <i class="bi bi-search"></i>
@@ -94,7 +106,7 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <h5 class="modal-title" id="exampleModalLabel">New Post</h5>
           <button type="button" class="btn close" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -116,9 +128,10 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_32_0";
+  const VERSION = "0_42_0";
   var distribtrID = 0;
   var peerDistribtrID = 0;
+  let sendLimit = 10;
   const peerDistribtrS = {};
   var firstTry = true;
   var firstTryPeer = true;
@@ -126,8 +139,27 @@
   var peerConn;
   var connected = false;
   let allData = {};
-  allData["users"] = [];
+  allData["users"] = {};
   allData["messages"] = {};
+
+  let sendIntervalID = setInterval(function() {
+    if (sendLimit < 10) {
+      sendLimit++;
+    }
+  }, 2000);
+
+  function mergeData(newAllData) {
+    for (let key of Object.keys(newAllData.users)) {
+      if (typeof allData.users[key] === "undefined") {
+        allData.users[key] = newAllData.users[key];
+      }
+    }
+    for (let key of Object.keys(newAllData.messages)) {
+      if (typeof allData.messages[key] === "undefined") {
+        allData.messages[key] = newAllData.messages[key];
+      }
+    }
+  }
 
   function sendMessage() {
     var dataToSend = {
@@ -160,7 +192,6 @@
     console.log("attempting new peer connection "+newID);
     const pConn = peer.connect(VERSION+'_Distribtr' + newID);
     // on open will be launch when you successfully connect to PeerServer
-    console.log(pConn);
     pConn.on('open', function(){
       // here you have conn.id
       console.log("attempting connection, reconnectPeer open");
@@ -169,12 +200,14 @@
       console.log("peerDistribtrS:");
       console.log(peerDistribtrS);
       connected = true;
+      updateConnectionStatus();
       pConn.send(JSON.stringify(newDataObj));
     });
     pConn.on('error', function(err){
       console.log("got an error pConn");
       peerError = true;
       connected = false;
+      updateConnectionStatus();
       console.log(err);
       return;
     });
@@ -188,6 +221,7 @@
   function reconnectPeer() {
     if (distribtrID === peerDistribtrID) {
       connected = false;
+      updateConnectionStatus();
       peerDistribtrID++;
       reconnectPeer();
       return;
@@ -204,11 +238,13 @@
       console.log(distribtrID);
       //setInterval(pollForMessages, 5000);
       connected = true;
+      updateConnectionStatus();
     });
     peerConn.on('error', function(err){
       console.log("got an error peerConn");
       peerError = true;
       connected = false;
+      updateConnectionStatus();
       console.log(err);
       setTimeout(function() {
         peerDistribtrID++;
@@ -239,13 +275,16 @@
     });
     peer.on('connection', function(conn) {
       conn.on('data', function(data){
-        // Will print 'hi!'
-        console.log(data);
         if (connected) {
+          sendLimit--;
+          if (sendLimit < 1) {
+            return;
+          }
+          var sendList = {};
           var dataObj = JSON.parse(data);
           console.log("got:");
           console.log(dataObj);
-          allData = dataObj.message;
+          mergeData(dataObj.message);
           Object.keys(allData.messages).reduceRight(renderMessages, null);
           if (dataObj.ping) {
             console.log(dataObj);
@@ -256,10 +295,11 @@
 
             // send fanout
             for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
-              if (dataObj.src_peer_id !== newID) {
+              if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined") {
                 console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
                 console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
                 newPeerConn.send(JSON.stringify(newDataObj));
+                sendList[newID] = true;
               }
             }
 
@@ -283,12 +323,12 @@
                 addSymmetricConnection(dataObj.src_peer_id, newDataObj);
               }
 
-              console.log(peerDistribtrS);
               for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
-                if (dataObj.src_peer_id !== newID) {
+                if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined") {
                   console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
                   console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
                   newPeerConn.send(JSON.stringify(newDataObj));
+                  sendList[newID] = true;
                 }
               }
               return;
@@ -300,11 +340,11 @@
     });
     peer.on('error', function(err) {
       connected = false;
+      updateConnectionStatus();
       console.log("got an error reconnectSetup");
-      console.log(err);
       console.log(String(err));
-      console.log(err.Error);
       distribtrID++;
+      peerDistribtrID = 0;
       setTimeout(function() {
         reconnectSetup();
       }, 1000);
@@ -394,6 +434,19 @@
     Object.keys(allData.messages).reduceRight(renderMessages, null);
     sendMessage();
   };
+
+  function updateConnectionStatus() {
+    if (connected) {
+      document.getElementById("connection-status").textContent = "Connected";
+      document.getElementById("connection-status-icon").style.color = "#28a745";
+      document.getElementById("connection-status-count").textContent = "";
+    } else {
+      document.getElementById("connection-status").textContent = "Connecting";
+      document.getElementById("connection-status-icon").style.color = "#e4ba1a";
+      document.getElementById("connection-status-count").textContent = distribtrID;
+    }
+  }
+
 
 })
 </script>
