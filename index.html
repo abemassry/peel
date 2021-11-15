@@ -15,6 +15,9 @@
   .modal-content {
     background-color: #F5F5DC !important;
   }
+  #offcanvasRight {
+    background-color: #F5F5DC !important;
+  }
   #connection-status-icon {
     color: #e4ba1a;
   }
@@ -93,7 +96,7 @@
         <!--<span class="navbar-toggler-icon"></span>-->
         <i class="bi bi-plus-square"></i>
       </button>
-      <button class="navbar-toggler"  type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor04" aria-controls="navbarColor04" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" aria-expanded="false" aria-label="Toggle sidebarRight">
         <!--<span class="navbar-toggler-icon"></span>-->
         <i class="bi bi-list"></i>
       </button>
@@ -101,7 +104,7 @@
     </div>
   </nav>
 
-  <!-- Modal -->
+  <!-- Post Modal -->
   <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -122,13 +125,54 @@
     </div>
   </div>
 
+  <!-- Right Sidebar if mobile -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+      <h5 id="offcanvasRightLabel">Peel</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      Version: <span id="version-string"></span><br />
+      NodeID: <span id="node-id"></span><br />
+      PeerNodeID: <span id="peer-node-id"></span><br/>
+      ConnectedAdditionalPeers: <span id="connected-additional-peers"></span><br />
+    </div>
+  </div>
+
+  <!-- Create Username Modal -->
+  <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createUserModalLabel">
+            <svg height="20" width="20">
+              <circle cx="10" cy="10" r="5" stroke="black" stroke-width="3" fill="beige" />
+            </svg>
+            Peel &nbsp; Create Your Peel User
+          </h5>
+          <button type="button" class="btn close" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" id="post-modal-button" data-bs-dismiss="modal" class="btn btn-success">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <!-- JavaScript Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_42_0";
+  const VERSION = "0_44_0";
+  document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
   let sendLimit = 10;
@@ -206,9 +250,8 @@
     pConn.on('error', function(err){
       console.log("got an error pConn");
       peerError = true;
-      connected = false;
-      updateConnectionStatus();
       console.log(err);
+      pConn.close();
       return;
     });
     //pConn.send('hi from server');
@@ -369,17 +412,8 @@
   // UI interaction section
   //
 
-  /*
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Special title treatment</h5>
-            <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-          </div>
-          <div class="card-footer">
-            Featured
-          </div>
-        </div>
-  */
+  displayUserCreate();
+
   const displayedMessages = {};
 
   const card = document.createElement("div");
@@ -440,10 +474,19 @@
       document.getElementById("connection-status").textContent = "Connected";
       document.getElementById("connection-status-icon").style.color = "#28a745";
       document.getElementById("connection-status-count").textContent = "";
+      document.getElementById("node-id").textContent = distribtrID;
+      document.getElementById("peer-node-id").textContent = peerDistribtrID;
     } else {
       document.getElementById("connection-status").textContent = "Connecting";
       document.getElementById("connection-status-icon").style.color = "#e4ba1a";
       document.getElementById("connection-status-count").textContent = distribtrID;
+    }
+  }
+
+  function displayUserCreate() {
+    if (localStorage.getItem('userdata') === null) {
+      const createUserModal = new bootstrap.Modal(document.getElementById('createUserModal'));
+      createUserModal.show();
     }
   }
 
