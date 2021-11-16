@@ -25,6 +25,47 @@
     font-size: 13px;
     text-align: center;
   }
+  #drop-area {
+    border: 2px dashed #ccc;
+    border-radius: 20px;
+    width: 100%;
+    margin: 50px auto;
+    padding: 20px;
+  }
+  #drop-area.highlight {
+    border-color: purple;
+    background-color: grey;
+  }
+  #gallery {
+    margin-top: 10px;
+  }
+  #gallery img {
+    width: 150px;
+    margin-bottom: 10px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .upload-button {
+    display: inline-block;
+    padding: 10px;
+    background: #ccc;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  .upload-button:hover {
+    background: #ddd;
+  }
+  #fileElem {
+    display: none;
+  }
+  .info {
+    text-align: center;
+  }
+  #error {
+    color: red;
+  }
+
   body {
     background-color: #F5F5DC !important;
   }
@@ -155,7 +196,15 @@
           </button>
         </div>
         <div class="modal-body">
-          <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
+          <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="username">
+          <div id="drop-area">
+            <form class="my-form">
+              <p>Drag and drop profile picture.</p>
+              <input type="file" id="fileElem" onchange="handleFiles(this.files)">
+              <label class="upload-button" for="fileElem">Select an image</label>
+            </form>
+            <div id="gallery" /></div>
+          </div>
 
         </div>
         <div class="modal-footer">
@@ -488,6 +537,125 @@
       const createUserModal = new bootstrap.Modal(document.getElementById('createUserModal'));
       createUserModal.show();
     }
+  }
+
+  // ************************ Drag and drop ***************** //
+  let dropArea = document.getElementById("drop-area")
+
+  // Prevent default drag behaviors
+  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false)   
+    document.body.addEventListener(eventName, preventDefaults, false)
+  })
+
+  // Highlight drop area when item is dragged over it
+  ;['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, highlight, false)
+  })
+
+  ;['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, unhighlight, false)
+  })
+
+  // Handle dropped files
+  dropArea.addEventListener('drop', handleDrop, false)
+
+  function preventDefaults (e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  function highlight(e) {
+    dropArea.classList.add('highlight')
+  }
+
+  function unhighlight(e) {
+    dropArea.classList.remove('active')
+    dropArea.classList.remove('highlight')
+  }
+
+  function handleDrop(e) {
+    var dt = e.dataTransfer
+    var files = dt.files
+
+    handleFiles(files)
+  }
+
+
+  function handleFiles(files) {
+    const file0 = files[0];
+    uploadFile(file0);
+  }
+
+
+
+  async function uploadFile(file0) {
+    let errorDisplay = document.getElementById('error');
+    let err = '';
+
+    console.log('html');
+    console.log(html);
+    let url = 'https://wsend.net/createunreg';
+    var myHeaders = new Headers();
+    //myHeaders.append('Content-Type', 'application/x-www-form-urlencoded');
+    myHeaders.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    myHeaders.append('Accept', 'text/plain');
+    let response;
+    let uid = localStorage.getItem('uid');
+    if (!uid) {
+      let response = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        cache: 'default',
+        headers: myHeaders,
+        body: 'start=1'
+      });
+      uid = await response.text();
+      console.log(uid);
+      if (uid === '') {
+        console.log('uid empty');
+        return;
+      }
+    }
+    localStorage.setItem('uid', uid);
+    url = 'https://wsend.net/upload_cli';
+    formData = new FormData();
+
+    formData.append('filehandle', js);
+    formData.append('uid', uid);
+
+    response = await fetch(url, {
+      method: 'POST',
+      body: formData
+    });
+    let jslink = await response.text();
+
+    console.log(jslink);
+    var t2 = 't2 replace here';
+    var reader = new FileReader();
+    reader.readAsText(html);
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    reader.onload = function(){
+      var text = reader.result;
+      console.log("before");
+      t2 = text.replace(/e\.src = ".*\.js";/m, `e.src = "${jslink}";`);
+      console.log("after");
+    };
+    await sleep(1000);
+    var blob = new Blob([t2], { type: html.type });
+    formData = new FormData()
+
+    formData.append('filehandle', blob, html.name);
+    formData.append('uid', uid);
+
+    response = await fetch(url, {
+      method: 'POST',
+      body: formData
+    });
+    let wsendLink = await response.text();
+    // set profile image here
   }
 
 
