@@ -18,10 +18,10 @@
   #offcanvasRight {
     background-color: #F5F5DC !important;
   }
-  #connection-status-icon {
+  .connection-status-icon {
     color: #e4ba1a;
   }
-  #connection-status-count {
+  .connection-status-count {
     font-size: 13px;
     text-align: center;
   }
@@ -106,7 +106,7 @@
         Peel
       </a>
       <div id="connection-container">
-        <span id="connection-status">Connecting</span>&nbsp;<i id="connection-status-icon" class="bi bi-circle-fill"></i>&nbsp;<span id="connection-status-count"></span>
+        <span class="connection-status">Connecting</span>&nbsp;<i class="connection-status-icon bi bi-circle-fill"></i>&nbsp;<span class="connection-status-count"></span>
       </div>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
         <!--<span class="navbar-toggler-icon"></span>-->
@@ -215,9 +215,9 @@
             </svg>
             Peel &nbsp; Create Your Peel User
           </h5>
-          <button type="button" class="btn close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <div class="connection-container">
+            <span class="connection-status">Connecting</span>&nbsp;<i class="connection-status-icon bi bi-circle-fill"></i>&nbsp;<span class="connection-status-count"></span>
+          </div>
         </div>
         <div class="modal-body">
           <div class="container">
@@ -228,13 +228,13 @@
                   <br />
                   <i class="large-icon bi bi-camera"></i>
                 </div>
-                <!-- <img class="create-user-modal-image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACAAgMAAAC+UIlYAAAACVBMVEXMzMyWlpaqqqpAcuGuAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAKElEQVRYhe3KIQEAMAgAMMwNqYhG9DcA+YtNLwIAYJS9hFPvAwDwtwspzwGfPz/CmgAAAABJRU5ErkJggg==" /> -->
               </div>
               <div class="col"></div>
             </div>
           </div>
           <br />
-          <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="username">
+          <input type="text" class="form-control" id="username-input-modal" placeholder="username">
+          <div id="validation-user-feedback" class="invalid-feedback"></div>
           <div id="drop-area">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
@@ -246,8 +246,7 @@
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" id="post-modal-button" data-bs-dismiss="modal" class="btn btn-success">Create</button>
+          <button type="button" id="create-user-modal-button" data-bs-dismiss="modal" class="btn btn-success" disabled>Create</button>
         </div>
       </div>
     </div>
@@ -258,7 +257,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_44_0";
+  const VERSION = "0_53_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -268,10 +267,17 @@
   var firstTryPeer = true;
   var peer;
   var peerConn;
+  let imgurl = localStorage.getItem('imgurl');
+  let userdata = localStorage.getItem('userdata');
   var connected = false;
   let allData = {};
   allData["users"] = {};
   allData["messages"] = {};
+  if (!localStorage.getItem('allData')) {
+    localStorage.setItem('allData', JSON.stringify(allData));
+  } else {
+    allData = JSON.parse(localStorage.getItem('allData'));
+  }
 
   let sendIntervalID = setInterval(function() {
     if (sendLimit < 10) {
@@ -290,6 +296,7 @@
         allData.messages[key] = newAllData.messages[key];
       }
     }
+    localStorage.setItem('allData', JSON.stringify(allData));
   }
 
   function sendMessage() {
@@ -306,6 +313,33 @@
     for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
       newPeerConn.send(JSON.stringify(dataToSend));
     }
+  }
+
+  function sendAllDataToPeer() {
+    var dataToSend = {
+      "originator": distribtrID,
+      "src_peer_id": distribtrID,
+      "dest_peer_id": peerDistribtrID,
+      "message": allData,
+      "peers": [distribtrID]
+    };
+    console.log(dataToSend);
+    console.log('sending');
+    peerConn.send(JSON.stringify(dataToSend));
+  }
+
+  function sendAllDataToOneFan(fanID) {
+    var dataToSend = {
+      "originator": distribtrID,
+      "src_peer_id": distribtrID,
+      "dest_peer_id": fanID,
+      "message": allData,
+      "peers": [distribtrID]
+    };
+    console.log(dataToSend);
+    console.log('sending');
+
+    peerDistribtrS[fanID].send(JSON.stringify(dataToSend));
   }
 
   function pollForMessages() {
@@ -332,7 +366,9 @@
       console.log(peerDistribtrS);
       connected = true;
       updateConnectionStatus();
-      pConn.send(JSON.stringify(newDataObj));
+      if (newDataObj !== "dontSend") {
+        pConn.send(JSON.stringify(newDataObj));
+      }
     });
     pConn.on('error', function(err){
       console.log("got an error pConn");
@@ -400,7 +436,6 @@
       console.log('reconnection My peer ID is: ' + namespaceID);
       localStorage.setItem("sequential_peer_id", namespaceID);
       // send event for trying to connect to other peers
-      peerDistribtrID++;
       reconnectPeer();
     });
     peer.on('connection', function(conn) {
@@ -414,10 +449,20 @@
           var dataObj = JSON.parse(data);
           console.log("got:");
           console.log(dataObj);
-          mergeData(dataObj.message);
+          if (typeof dataObj.ping === "undefined") {
+            mergeData(dataObj.message);
+          }
           Object.keys(allData.messages).reduceRight(renderMessages, null);
           if (dataObj.ping) {
             console.log(dataObj);
+            if (dataObj.src_peer_id == peerDistribtrID) {
+              sendAllDataToPeer();
+            } else {
+              if (typeof peerDistribtrS[dataObj.originator] === "undefined") {
+                addSymmetricConnection(dataObj.originator, "dontSend");
+              }
+              sendAllDataToOneFan(dataObj.originator);
+            }
           } else {
             let newDataObj = Object.assign({}, dataObj);
             newDataObj.src_peer_id = distribtrID;
@@ -547,7 +592,7 @@
     const strNow = now.toString() + getRandomInt(9).toString();
     const nowInt = parseInt(strNow);
     allData.messages[nowInt] = {
-      "user": "user1",
+      "user": userdata,
       "text": postContent
     };
     document.getElementById("post-modal-textarea").value = "";
@@ -558,15 +603,36 @@
 
   function updateConnectionStatus() {
     if (connected) {
-      document.getElementById("connection-status").textContent = "Connected";
-      document.getElementById("connection-status-icon").style.color = "#28a745";
-      document.getElementById("connection-status-count").textContent = "";
+      let c = document.getElementsByClassName("connection-status");
+      let i;
+      for (i = 0; i < c.length; i++) {
+        c[i].textContent = "Connected";
+      }
+      c = document.getElementsByClassName("connection-status-icon");
+      for (i = 0; i < c.length; i++) {
+        c[i].style.color = "#28a745";
+      }
+      c = document.getElementsByClassName("connection-status-count");
+      for (i = 0; i < c.length; i++) {
+        c[i].textContent = "";
+      }
       document.getElementById("node-id").textContent = distribtrID;
       document.getElementById("peer-node-id").textContent = peerDistribtrID;
+      pollForMessages();
     } else {
-      document.getElementById("connection-status").textContent = "Connecting";
-      document.getElementById("connection-status-icon").style.color = "#e4ba1a";
-      document.getElementById("connection-status-count").textContent = distribtrID;
+      let c = document.getElementsByClassName("connection-status");
+      let i;
+      for (i = 0; i < c.length; i++) {
+        c[i].textContent = "Connecting";
+      }
+      c = document.getElementsByClassName("connection-status-icon");
+      for (i = 0; i < c.length; i++) {
+        c[i].style.color = "#e4ba1a";
+      }
+      c = document.getElementsByClassName("connection-status-count");
+      for (i = 0; i < c.length; i++) {
+        c[i].textContent = distribtrID;
+      }
     }
   }
 
@@ -576,6 +642,36 @@
       createUserModal.show();
     }
   }
+
+  // document get input box wait for input make create button active
+  // check against user list
+
+  const usernameModalInput = document.getElementById("username-input-modal");
+  usernameModalInput.addEventListener('input', updateUsername);
+
+  function updateUsername(e) {
+    if (usernameModalInput.value !== "" && typeof allData.users[usernameModalInput.value] === "undefined" && connected) {
+      document.getElementById("create-user-modal-button").disabled = false;
+        document.getElementById("validation-user-feedback").textContent = "";
+        usernameModalInput.classList.remove("is-invalid");
+    } else {
+      document.getElementById("create-user-modal-button").disabled = true;
+      if (typeof allData.users[usernameModalInput.value] !== "undefined" && connected) {
+        document.getElementById("validation-user-feedback").textContent = "Username taken";
+        usernameModalInput.classList.add("is-invalid");
+      }
+    }
+
+  }
+
+  document.getElementById("create-user-modal-button").addEventListener("click", function() {
+    localStorage.setItem('userdata', usernameModalInput.value);
+    username = usernameModalInput.value;
+    allData.users[usernameModalInput.value] = localStorage.getItem('imgurl');
+    imgurl = localStorage.getItem('imgurl');
+  });
+
+
 
 
 
@@ -678,6 +774,10 @@ async function uploadFile(file0) {
   largeContainer.appendChild(imgTag);
 
   // set profile image here
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
