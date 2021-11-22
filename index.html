@@ -666,7 +666,7 @@
 
   document.getElementById("create-user-modal-button").addEventListener("click", function() {
     localStorage.setItem('userdata', usernameModalInput.value);
-    username = usernameModalInput.value;
+    userdata = usernameModalInput.value;
     allData.users[usernameModalInput.value] = localStorage.getItem('imgurl');
     imgurl = localStorage.getItem('imgurl');
   });
