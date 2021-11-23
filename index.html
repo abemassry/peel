@@ -86,6 +86,10 @@
     align-items: center;     /* center items horizontally, in this case */
     font-size: 48px;
   }
+  .card-user-img {
+    max-width: 50px;
+    max-height: 50px;
+  }
   #error {
     color: red;
   }
@@ -552,6 +556,8 @@
   card.classList.add("card");
   const cardBody = document.createElement("div");
   cardBody.classList.add("card-body");
+  const userimg = document.createElement("img");
+  userimg.classList.add("card-user-img")
   const h6 = document.createElement("h6");
   h6.classList.add("card-title");
   const cardText = document.createElement("p");
@@ -559,6 +565,7 @@
   const cardFooter = document.createElement("div");
   cardFooter.classList.add("card-footer");
   cardBody.append(h6);
+  h6.append(userimg);
   cardBody.append(cardText);
   card.append(cardBody);
   card.append(cardFooter);
@@ -571,6 +578,11 @@
     }
     const message = allData.messages[index];
     const newCard = card.cloneNode(true);
+    if (typeof allData.users[message.user] !== "undefined") {
+      newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user];
+      newCard.getElementsByClassName("card-title")[0].append("\u00A0");
+      newCard.getElementsByClassName("card-title")[0].append("\u00A0");
+    }
     newCard.getElementsByClassName("card-title")[0].append(message.user);
     newCard.getElementsByClassName("card-text")[0].append(message.text);
     messageHolder.prepend(newCard);
