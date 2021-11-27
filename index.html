@@ -265,11 +265,10 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_63_0";
+  const VERSION = "0_65_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
-  let sendLimit = 1000;
   const peerDistribtrS = {};
   var firstTry = true;
   var firstTryPeer = true;
@@ -287,12 +286,6 @@
   } else {
     allData = JSON.parse(localStorage.getItem('allData'));
   }
-
-  let sendIntervalID = setInterval(function() {
-    if (sendLimit < 1000) {
-      sendLimit++;
-    }
-  }, 2000);
 
   function mergeData(newAllData) {
     for (let key of Object.keys(newAllData.users)) {
@@ -463,10 +456,6 @@
     peer.on('connection', function(conn) {
       conn.on('data', function(data){
         if (connected) {
-          sendLimit--;
-          if (sendLimit < 1) {
-            return;
-          }
           var sendList = {};
           var dataObj = JSON.parse(data);
           console.log("got:");
