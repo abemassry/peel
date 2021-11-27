@@ -265,11 +265,11 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_53_0";
+  const VERSION = "0_63_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
-  let sendLimit = 10;
+  let sendLimit = 1000;
   const peerDistribtrS = {};
   var firstTry = true;
   var firstTryPeer = true;
@@ -278,6 +278,7 @@
   let imgurl = localStorage.getItem('imgurl');
   let userdata = localStorage.getItem('userdata');
   var connected = false;
+  let connectionInterval;
   let allData = {};
   allData["users"] = {};
   allData["messages"] = {};
@@ -288,7 +289,7 @@
   }
 
   let sendIntervalID = setInterval(function() {
-    if (sendLimit < 10) {
+    if (sendLimit < 1000) {
       sendLimit++;
     }
   }, 2000);
@@ -332,7 +333,7 @@
       "peers": [distribtrID]
     };
     console.log(dataToSend);
-    console.log('sending');
+    console.log('sendAllDataToPeer: sending');
     peerConn.send(JSON.stringify(dataToSend));
   }
 
@@ -345,8 +346,12 @@
       "peers": [distribtrID]
     };
     console.log(dataToSend);
-    console.log('sending');
+    console.log('sendAllDataToOneFan: sending');
 
+    if (typeof peerDistribtrS[fanID] === "undefined") {
+      delete peerDistribtrS[fanID]
+      return;
+    }
     peerDistribtrS[fanID].send(JSON.stringify(dataToSend));
   }
 
@@ -357,7 +362,9 @@
       "dest_peer_id": peerDistribtrID,
       "ping": true
     };
+    console.log("polling for messages");
     peerConn.send(JSON.stringify(dataToSend));
+    console.log("finished polling for messages");
   }
 
   function addSymmetricConnection(newID, newDataObj) {
@@ -383,6 +390,8 @@
       peerError = true;
       console.log(err);
       pConn.close();
+      delete peerDistribtrS[newID];
+      updateConnectionStatus();
       return;
     });
     //pConn.send('hi from server');
@@ -413,6 +422,11 @@
       //setInterval(pollForMessages, 5000);
       connected = true;
       updateConnectionStatus();
+
+      connectionInterval = setInterval(function() {
+        updateConnectionStatus();
+      }, 5000);
+
     });
     peerConn.on('error', function(err){
       console.log("got an error peerConn");
@@ -459,11 +473,11 @@
           console.log(dataObj);
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
+            Object.keys(allData.messages).reduceRight(renderMessages, null);
           }
-          Object.keys(allData.messages).reduceRight(renderMessages, null);
           if (dataObj.ping) {
             console.log(dataObj);
-            if (dataObj.src_peer_id == peerDistribtrID) {
+            if (dataObj.src_peer_id === peerDistribtrID) {
               sendAllDataToPeer();
             } else {
               if (typeof peerDistribtrS[dataObj.originator] === "undefined") {
@@ -481,7 +495,9 @@
               if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined") {
                 console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
                 console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
-                newPeerConn.send(JSON.stringify(newDataObj));
+                if (newPeerConn !== null) {
+                  newPeerConn.send(JSON.stringify(newDataObj));
+                }
                 sendList[newID] = true;
               }
             }
@@ -585,11 +601,14 @@
     const message = allData.messages[index];
     const newCard = card.cloneNode(true);
     const newHr = hr.cloneNode(true);
-    if (typeof allData.users[message.user] !== "undefined") {
+    if (typeof allData.users[message.user] !== "undefined" && allData.users[message.user] !== null) {
       newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user];
-      newCard.getElementsByClassName("card-title")[0].append("\u00A0");
-      newCard.getElementsByClassName("card-title")[0].append("\u00A0");
+    } else {
+      newCard.getElementsByClassName("card-user-img")[0].src = "https://wsnd.io/mSBHpa9r/default-user.png";
     }
+    newCard.getElementsByClassName("card-title")[0].append("\u00A0");
+    newCard.getElementsByClassName("card-title")[0].append("\u00A0");
+
     newCard.getElementsByClassName("card-title")[0].append(message.user);
     newCard.getElementsByClassName("card-text")[0].append(message.text);
     messageHolder.prepend(newHr);
@@ -622,7 +641,9 @@
   };
 
   function updateConnectionStatus() {
+    console.log("updating connection status");
     if (connected) {
+      console.log("connected inside updateConnectionStatus");
       let c = document.getElementsByClassName("connection-status");
       let i;
       for (i = 0; i < c.length; i++) {
@@ -638,7 +659,9 @@
       }
       document.getElementById("node-id").textContent = distribtrID;
       document.getElementById("peer-node-id").textContent = peerDistribtrID;
+      console.log("about to poll");
       pollForMessages();
+      console.log("done poll");
     } else {
       let c = document.getElementsByClassName("connection-status");
       let i;
