@@ -18,6 +18,9 @@
   #offcanvasRight {
     background-color: #F5F5DC !important;
   }
+  #offcanvasLeft {
+    background-color: #F5F5DC !important;
+  }
   .connection-status-icon {
     color: #e4ba1a;
   }
@@ -161,9 +164,9 @@
 
   <nav class="navbar navbar-custom fixed-bottom navbar-light bg-light d-xs-block d-sm-block d-md-block d-lg-none d-xl-none">
     <div class="container-fluid">
-      <button class="navbar-toggler"  type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor02" aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler"  type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasLeft" aria-controls="offcanvasLeft" aria-expanded="false" aria-label="Toggle sidebarLeft">
         <!--<span class="navbar-toggler-icon"></span>-->
-        <i class="bi bi-house-door-fill"></i>
+        <i class="bi bi-person-fill"></i>
       </button>
       <button class="navbar-toggler btn" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">
         <!--<span class="navbar-toggler-icon"></span>-->
@@ -209,6 +212,20 @@
       NodeID: <span id="node-id"></span><br />
       PeerNodeID: <span id="peer-node-id"></span><br/>
       ConnectedAdditionalPeers: <span id="connected-additional-peers"></span><br />
+    </div>
+  </div>
+
+  <!-- Left Sidebar if mobile -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasLeft" aria-labelledby="offcanvasLeftLabel">
+    <div class="offcanvas-header">
+      <h5 id="offcanvasLeftLabel">Peel</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div id="user-image-sidebar">
+        <span id="user-name-sidebar"></span>
+      </div>
+      <div>Change<br />Picture</div>
     </div>
   </div>
 
@@ -274,6 +291,7 @@
   var firstTryPeer = true;
   var peer;
   var peerConn;
+  const defaultUserImage = "https://wsnd.io/mSBHpa9r/default-user.png";
   let imgurl = localStorage.getItem('imgurl');
   let userdata = localStorage.getItem('userdata');
   var connected = false;
@@ -286,6 +304,14 @@
   } else {
     allData = JSON.parse(localStorage.getItem('allData'));
   }
+  if (userdata !== null) {
+    if (imgurl !== null) {
+      initUserImageSidebar(userdata, imgurl);
+    } else {
+      initUserImageSidebar(userdata, defaultUserImage);
+    }
+  }
+
 
   function mergeData(newAllData) {
     for (let key of Object.keys(newAllData.users)) {
@@ -593,7 +619,7 @@
     if (typeof allData.users[message.user] !== "undefined" && allData.users[message.user] !== null) {
       newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user];
     } else {
-      newCard.getElementsByClassName("card-user-img")[0].src = "https://wsnd.io/mSBHpa9r/default-user.png";
+      newCard.getElementsByClassName("card-user-img")[0].src = defaultUserImage;
     }
     newCard.getElementsByClassName("card-title")[0].append("\u00A0");
     newCard.getElementsByClassName("card-title")[0].append("\u00A0");
@@ -701,8 +727,21 @@
     userdata = usernameModalInput.value;
     allData.users[usernameModalInput.value] = localStorage.getItem('imgurl');
     imgurl = localStorage.getItem('imgurl');
+    initUserImageSidebar(userdata, imgurl);
   });
 
+  function initUserImageSidebar(userdata, imgurl) {
+    const domUserImageDiv = document.getElementById("user-image-sidebar");
+    const userimg = document.createElement("img");
+    const domUserName = document.getElementById("user-name-sidebar");
+    userimg.src = imgurl;
+    // add a href tag to image to open modal to change picture
+    userimg.classList.add("card-user-img");
+    domUserImageDiv.prepend(userimg);
+    domUserName.append("\u00A0");
+    domUserName.append("\u00A0");
+    domUserName.append(userdata);
+  }
 
 
 
