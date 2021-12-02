@@ -94,6 +94,9 @@
     max-height: 50px;
     border-radius: 50%;
   }
+  .card-user-img-link {
+    cursor: pointer;
+  }
   .card-text {
     margin-left: 59px;
   }
@@ -277,12 +280,58 @@
     </div>
   </div>
 
+  <!-- Change Image Modal -->
+  <div class="modal fade" id="userImageModal" tabindex="-1" role="dialog" aria-labelledby="userImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userImageModalLabel">
+            <svg height="20" width="20">
+              <circle cx="10" cy="10" r="5" stroke="black" stroke-width="3" fill="beige" />
+            </svg>
+            Update Image
+          </h5>
+          <div class="connection-container">
+            <span class="connection-status">Connecting</span>&nbsp;<i class="connection-status-icon bi bi-circle-fill"></i>&nbsp;<span class="connection-status-count"></span>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <div class="row">
+              <div class="col"></div>
+              <div class="col">
+                <div class="large-container" id="create-user-image-container">
+                  <br />
+                  <i class="large-icon bi bi-camera"></i>
+                </div>
+              </div>
+              <div class="col"></div>
+            </div>
+          </div>
+          <br />
+          <div id="drop-area">
+            <form class="my-form">
+              <p>Drag and drop profile picture.</p>
+              <input type="file" id="fileElem" onchange="handleFiles(this.files)">
+              <label class="upload-button" for="fileElem">Select an image</label>
+            </form>
+            <div id="gallery" /></div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="create-user-modal-button" data-bs-dismiss="modal" class="btn btn-success" disabled>Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <!-- JavaScript Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_65_0";
+  const VERSION = "0_67_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -733,11 +782,16 @@
   function initUserImageSidebar(userdata, imgurl) {
     const domUserImageDiv = document.getElementById("user-image-sidebar");
     const userimg = document.createElement("img");
+    const imglink = document.createElement("a");
+    imglink.classList.add("card-user-img-link");
+    imglink.setAttribute('data-bs-toggle', "modal");
+    imglink.setAttribute('data-bs-target', "#userImageModal");
     const domUserName = document.getElementById("user-name-sidebar");
     userimg.src = imgurl;
     // add a href tag to image to open modal to change picture
     userimg.classList.add("card-user-img");
-    domUserImageDiv.prepend(userimg);
+    domUserImageDiv.prepend(imglink);
+    imglink.append(userimg);
     domUserName.append("\u00A0");
     domUserName.append("\u00A0");
     domUserName.append(userdata);
