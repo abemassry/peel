@@ -28,14 +28,14 @@
     font-size: 13px;
     text-align: center;
   }
-  #drop-area {
+  .drop-area {
     border: 2px dashed #ccc;
     border-radius: 20px;
     width: 100%;
     margin: 50px auto;
     padding: 20px;
   }
-  #drop-area.highlight {
+  .drop-area.highlight {
     border-color: purple;
     background-color: grey;
   }
@@ -252,7 +252,7 @@
             <div class="row">
               <div class="col"></div>
               <div class="col">
-                <div class="large-container" id="create-user-image-container">
+                <div class="large-container" class="create-user-image-container">
                   <br />
                   <i class="large-icon bi bi-camera"></i>
                 </div>
@@ -263,7 +263,7 @@
           <br />
           <input type="text" class="form-control" id="username-input-modal" placeholder="username">
           <div id="validation-user-feedback" class="invalid-feedback"></div>
-          <div id="drop-area">
+          <div class="drop-area">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
               <input type="file" id="fileElem" onchange="handleFiles(this.files)">
@@ -300,7 +300,7 @@
             <div class="row">
               <div class="col"></div>
               <div class="col">
-                <div class="large-container" id="create-user-image-container">
+                <div class="large-container" class="create-user-image-container">
                   <br />
                   <i class="large-icon bi bi-camera"></i>
                 </div>
@@ -309,7 +309,7 @@
             </div>
           </div>
           <br />
-          <div id="drop-area">
+          <div class="drop-area">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
               <input type="file" id="fileElem" onchange="handleFiles(this.files)">
@@ -804,25 +804,28 @@
 
 
 // ************************ Drag and drop ***************** //
-let dropArea = document.getElementById("drop-area")
+let dropAreas = document.getElementsByClassName("drop-area");
 
-// Prevent default drag behaviors
-;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  dropArea.addEventListener(eventName, preventDefaults, false)   
-  document.body.addEventListener(eventName, preventDefaults, false)
-})
+Array.from(dropAreas).forEach((dropArea) => {
+  console.log("the foreach works");
+  // Prevent default drag behaviors
+  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false)   
+    document.body.addEventListener(eventName, preventDefaults, false)
+  })
 
-// Highlight drop area when item is dragged over it
-;['dragenter', 'dragover'].forEach(eventName => {
-  dropArea.addEventListener(eventName, highlight, false)
-})
+  // Highlight drop area when item is dragged over it
+  ;['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, highlight, false)
+  })
 
-;['dragleave', 'drop'].forEach(eventName => {
-  dropArea.addEventListener(eventName, unhighlight, false)
-})
+  ;['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, unhighlight, false)
+  })
 
-// Handle dropped files
-dropArea.addEventListener('drop', handleDrop, false)
+  // Handle dropped files
+  dropArea.addEventListener('drop', handleDrop, false)
+});
 
 function preventDefaults (e) {
   e.preventDefault()
@@ -892,11 +895,19 @@ async function uploadFile(file0) {
   });
   const imgurl = await response.text();
   localStorage.setItem('imgurl', imgurl);
-  const largeContainer = document.getElementById('create-user-image-container')
-  largeContainer.innerHTML = '';
-  const imgTag = document.createElement('img');
-  imgTag.src = imgurl;
-  largeContainer.appendChild(imgTag);
+  document.querySelectorAll('.create-user-image-container').forEach((largeContainer) => {
+    console.log("_");
+    console.log("_");
+    console.log("_");
+    console.log(largeContainer);
+    console.log("_");
+    console.log("_");
+
+    largeContainer.innerHTML = '';
+    const imgTag = document.createElement('img');
+    imgTag.src = imgurl;
+    largeContainer.appendChild(imgTag);
+  });
 
   // set profile image here
 }
