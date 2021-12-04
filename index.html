@@ -90,7 +90,7 @@
     font-size: 48px;
   }
   .card-user-img {
-    max-width: 50px;
+    width: 50px;
     max-height: 50px;
     border-radius: 50%;
   }
@@ -252,7 +252,7 @@
             <div class="row">
               <div class="col"></div>
               <div class="col">
-                <div class="large-container" class="create-user-image-container">
+                <div class="large-container create-user-image-container">
                   <br />
                   <i class="large-icon bi bi-camera"></i>
                 </div>
@@ -300,7 +300,7 @@
             <div class="row">
               <div class="col"></div>
               <div class="col">
-                <div class="large-container" class="create-user-image-container">
+                <div class="large-container create-user-image-container">
                   <br />
                   <i class="large-icon bi bi-camera"></i>
                 </div>
@@ -320,7 +320,7 @@
 
         </div>
         <div class="modal-footer">
-          <button type="button" id="create-user-modal-button" data-bs-dismiss="modal" class="btn btn-success" disabled>Create</button>
+          <button type="button" id="done-image-modal-button" data-bs-dismiss="modal" class="btn btn-success">Done</button>
         </div>
       </div>
     </div>
@@ -360,6 +360,8 @@
       initUserImageSidebar(userdata, defaultUserImage);
     }
   }
+
+  // TODO: init all data with username and image if present but not in allData
 
 
   function mergeData(newAllData) {
@@ -779,6 +781,13 @@
     initUserImageSidebar(userdata, imgurl);
   });
 
+  document.getElementById("done-image-modal-button").addEventListener("click", function() {
+    const username = localStorage.getItem('userdata');
+    allData.users[username] = localStorage.getItem('imgurl');
+    // TODO: update card-user-img-link with new image
+  });
+
+
   function initUserImageSidebar(userdata, imgurl) {
     const domUserImageDiv = document.getElementById("user-image-sidebar");
     const userimg = document.createElement("img");
@@ -896,12 +905,6 @@ async function uploadFile(file0) {
   const imgurl = await response.text();
   localStorage.setItem('imgurl', imgurl);
   document.querySelectorAll('.create-user-image-container').forEach((largeContainer) => {
-    console.log("_");
-    console.log("_");
-    console.log("_");
-    console.log(largeContainer);
-    console.log("_");
-    console.log("_");
 
     largeContainer.innerHTML = '';
     const imgTag = document.createElement('img');
