@@ -331,7 +331,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_67_0";
+  const VERSION = "0_69_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -356,19 +356,16 @@
   if (userdata !== null) {
     if (imgurl !== null) {
       initUserImageSidebar(userdata, imgurl);
+      allData.users[userdata] = imgurl;
     } else {
       initUserImageSidebar(userdata, defaultUserImage);
     }
   }
 
-  // TODO: init all data with username and image if present but not in allData
-
 
   function mergeData(newAllData) {
     for (let key of Object.keys(newAllData.users)) {
-      if (typeof allData.users[key] === "undefined") {
-        allData.users[key] = newAllData.users[key];
-      }
+      allData.users[key] = newAllData.users[key];
     }
     for (let key of Object.keys(newAllData.messages)) {
       if (typeof allData.messages[key] === "undefined") {
@@ -783,8 +780,14 @@
 
   document.getElementById("done-image-modal-button").addEventListener("click", function() {
     const username = localStorage.getItem('userdata');
-    allData.users[username] = localStorage.getItem('imgurl');
-    // TODO: update card-user-img-link with new image
+    const imgurlEdited = localStorage.getItem('imgurl');
+    allData.users[username] = imgurlEdited;
+    localStorage.setItem('allData', JSON.stringify(allData));
+    sendMessage();
+    const cardImgs = document.getElementsByClassName("card-user-img-sidebar");
+    for (let i = 0; i < cardImgs.length; i++) {
+      cardImgs[i].src = imgurlEdited;
+    }
   });
 
 
@@ -799,6 +802,7 @@
     userimg.src = imgurl;
     // add a href tag to image to open modal to change picture
     userimg.classList.add("card-user-img");
+    userimg.classList.add("card-user-img-sidebar");
     domUserImageDiv.prepend(imglink);
     imglink.append(userimg);
     domUserName.append("\u00A0");
