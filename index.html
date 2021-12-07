@@ -193,8 +193,16 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" id="post-modal-body">
           <textarea class="form-control" id="post-modal-textarea" rows="5"></textarea>
+          <div class="drop-area" id="drop-area-post">
+            <form class="my-form">
+              <p>Add an image with your post.</p>
+              <input type="file" id="fileElem" onchange="handleFilesPost(this.files)">
+              <label class="upload-button" for="fileElem">Select an image</label>
+            </form>
+            <div id="gallery" /></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -263,7 +271,7 @@
           <br />
           <input type="text" class="form-control" id="username-input-modal" placeholder="username">
           <div id="validation-user-feedback" class="invalid-feedback"></div>
-          <div class="drop-area">
+          <div class="drop-area drop-area-userimg">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
               <input type="file" id="fileElem" onchange="handleFiles(this.files)">
@@ -309,7 +317,7 @@
             </div>
           </div>
           <br />
-          <div class="drop-area">
+          <div class="drop-area drop-area-userimg">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
               <input type="file" id="fileElem" onchange="handleFiles(this.files)">
@@ -640,16 +648,19 @@
   const cardBody = document.createElement("div");
   cardBody.classList.add("card-body");
   const userimg = document.createElement("img");
-  userimg.classList.add("card-user-img")
+  userimg.classList.add("card-user-img");
   const h6 = document.createElement("h6");
   h6.classList.add("card-title");
   const cardText = document.createElement("p");
   cardText.classList.add("card-text");
+  const cardPostImage = document.createElement("div");
+  cardPostImage.classList.add("card-post-img-holder");
   const cardFooter = document.createElement("div");
   cardFooter.classList.add("card-footer");
   cardBody.append(h6);
   h6.append(userimg);
   cardBody.append(cardText);
+  cardBody.append(cardPostImage);
   card.append(cardBody);
   card.append(cardFooter);
 
@@ -674,10 +685,19 @@
 
     newCard.getElementsByClassName("card-title")[0].append(message.user);
     newCard.getElementsByClassName("card-text")[0].append(message.text);
+    if (typeof allData.messages[index].img !== "undefined" && allData.messages[index].img !== null && allData.messages[index].img !== '') {
+      const postimg = document.createElement("img");
+      postimg.classList.add("card-post-img");
+      postimg.classList.add("img-fluid");
+      postimg.src = allData.messages[index].img;
+      newCard.getElementsByClassName("card-post-img-holder")[0].append(postimg);
+    }
+
     messageHolder.prepend(newHr);
     messageHolder.prepend(newCard);
     displayedMessages[index] = true;
   }
+
   if (allData.messages.length > 0) {
     console.log("about to render");
     Object.keys(allData.messages).reduceRight(renderMessages, null);
@@ -695,9 +715,19 @@
     const nowInt = parseInt(strNow);
     allData.messages[nowInt] = {
       "user": userdata,
-      "text": postContent
+      "text": postContent,
     };
+    let imgsrc = '';
+    if (typeof document.getElementById("drop-post-img") !== "undefined" && document.getElementById("drop-post-img") !== null) {
+      imgsrc = document.getElementById("drop-post-img").src;
+    }
+    if (imgsrc !== '') {
+      allData.messages[nowInt].img = imgsrc;
+    }
     document.getElementById("post-modal-textarea").value = "";
+    const dropPost = document.getElementById('drop-area-post');
+    dropPost.style.display = "block";
+    document.getElementById("drop-post-img").remove();
     console.log(allData);
     Object.keys(allData.messages).reduceRight(renderMessages, null);
     sendMessage();
@@ -817,7 +847,7 @@
 
 
 // ************************ Drag and drop ***************** //
-let dropAreas = document.getElementsByClassName("drop-area");
+let dropAreas = document.getElementsByClassName("drop-area-userimg");
 
 Array.from(dropAreas).forEach((dropArea) => {
   console.log("the foreach works");
@@ -867,12 +897,93 @@ function handleFiles(files) {
   uploadFile(file0);
 }
 
-
-
 async function uploadFile(file0) {
   let errorDisplay = document.getElementById('error');
   let err = '';
+  const imgurl = await upload(file0);
+  if (imgurl === '') {
+    return;
+  }
+  localStorage.setItem('imgurl', imgurl);
 
+  // set profile image here
+  document.querySelectorAll('.create-user-image-container').forEach((largeContainer) => {
+
+    largeContainer.innerHTML = '';
+    const imgTag = document.createElement('img');
+    imgTag.src = imgurl;
+    largeContainer.appendChild(imgTag);
+  });
+}
+
+
+let dropAreaPost = document.getElementById("drop-area-post");
+
+// Prevent default drag behaviors
+;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  dropAreaPost.addEventListener(eventName, preventDefaultsPost, false)
+})
+
+// Highlight drop area when item is dragged over it
+;['dragenter', 'dragover'].forEach(eventName => {
+  dropAreaPost.addEventListener(eventName, highlightPost, false)
+})
+
+;['dragleave', 'drop'].forEach(eventName => {
+  dropAreaPost.addEventListener(eventName, unhighlightPost, false)
+})
+
+// Handle dropped files
+dropAreaPost.addEventListener('drop', handleDropPost, false)
+
+function preventDefaultsPost (e) {
+  e.preventDefault()
+  e.stopPropagation()
+}
+
+function highlightPost(e) {
+  dropAreaPost.classList.add('highlight')
+}
+
+function unhighlightPost(e) {
+  dropAreaPost.classList.remove('active')
+  dropAreaPost.classList.remove('highlight')
+}
+
+function handleDropPost(e) {
+  var dt = e.dataTransfer
+  var files = dt.files
+
+  handleFilesPost(files)
+}
+
+
+function handleFilesPost(files) {
+  const file0 = files[0];
+  uploadFilePost(file0);
+}
+
+async function uploadFilePost(file0) {
+  let errorDisplay = document.getElementById('error');
+  let err = '';
+  const imgurl = await upload(file0);
+  if (imgurl === '') {
+    return;
+  }
+  localStorage.setItem('imgurl', imgurl);
+
+  // set profile image here
+  const dropPost = document.getElementById('drop-area-post');
+  dropPost.style.display = "none";
+  const imgTag = document.createElement('img');
+  imgTag.src = imgurl;
+  imgTag.setAttribute("id", "drop-post-img");
+  imgTag.classList.add("img-fluid");
+  document.getElementById("post-modal-body").appendChild(imgTag);
+}
+
+
+async function upload(file0) {
   let url = 'https://wsend.net/createunreg';
   var myHeaders = new Headers();
   //myHeaders.append('Content-Type', 'application/x-www-form-urlencoded');
@@ -892,7 +1003,7 @@ async function uploadFile(file0) {
     console.log(uid);
     if (uid === '') {
       console.log('uid empty');
-      return;
+      return '';
     }
   }
   localStorage.setItem('uid', uid);
@@ -907,17 +1018,9 @@ async function uploadFile(file0) {
     body: formData
   });
   const imgurl = await response.text();
-  localStorage.setItem('imgurl', imgurl);
-  document.querySelectorAll('.create-user-image-container').forEach((largeContainer) => {
-
-    largeContainer.innerHTML = '';
-    const imgTag = document.createElement('img');
-    imgTag.src = imgurl;
-    largeContainer.appendChild(imgTag);
-  });
-
-  // set profile image here
+  return imgurl;
 }
+
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
