@@ -59,7 +59,7 @@
   .upload-button:hover {
     background: #ddd;
   }
-  #fileElem {
+  .fileElemClass {
     display: none;
   }
   .info {
@@ -198,8 +198,8 @@
           <div class="drop-area" id="drop-area-post">
             <form class="my-form">
               <p>Add an image with your post.</p>
-              <input type="file" id="fileElem" onchange="handleFilesPost(this.files)">
-              <label class="upload-button" for="fileElem">Select an image</label>
+              <input type="file" class="fileElemClass" id="fileElemPostModal" onchange="handleFilesPost(this.files)">
+              <label class="upload-button" for="fileElemPostModal">Select an image</label>
             </form>
             <div id="gallery" /></div>
           </div>
@@ -274,8 +274,8 @@
           <div class="drop-area drop-area-userimg">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
-              <input type="file" id="fileElem" onchange="handleFiles(this.files)">
-              <label class="upload-button" for="fileElem">Select an image</label>
+              <input type="file" class="fileElemClass" id="fileElemCreateUsername" onchange="handleFiles(this.files)">
+              <label class="upload-button" for="fileElemCreateUsername">Select an image</label>
             </form>
             <div id="gallery" /></div>
           </div>
@@ -320,8 +320,8 @@
           <div class="drop-area drop-area-userimg">
             <form class="my-form">
               <p>Drag and drop profile picture.</p>
-              <input type="file" id="fileElem" onchange="handleFiles(this.files)">
-              <label class="upload-button" for="fileElem">Select an image</label>
+              <input type="file" class="fileElemClass" id="fileElemChangeImage" onchange="handleFiles(this.files)">
+              <label class="upload-button" for="fileElemChangeImage">Select an image</label>
             </form>
             <div id="gallery" /></div>
           </div>
@@ -339,7 +339,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_69_0";
+  const VERSION = "0_71_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -727,7 +727,9 @@
     document.getElementById("post-modal-textarea").value = "";
     const dropPost = document.getElementById('drop-area-post');
     dropPost.style.display = "block";
-    document.getElementById("drop-post-img").remove();
+    if (document.getElementById("drop-post-img") !== null) {
+      document.getElementById("drop-post-img").remove();
+    }
     console.log(allData);
     Object.keys(allData.messages).reduceRight(renderMessages, null);
     sendMessage();
@@ -906,6 +908,14 @@ async function uploadFile(file0) {
   }
   localStorage.setItem('imgurl', imgurl);
 
+  console.log("");
+  console.log("");
+  console.log("");
+  console.log("uploading from uploadFile");
+  console.log("");
+  console.log("");
+  console.log("");
+
   // set profile image here
   document.querySelectorAll('.create-user-image-container').forEach((largeContainer) => {
 
@@ -970,16 +980,22 @@ async function uploadFilePost(file0) {
   if (imgurl === '') {
     return;
   }
-  localStorage.setItem('imgurl', imgurl);
+  console.log("");
+  console.log("");
+  console.log("");
+  console.log("uploading from uploadFilePost");
+  console.log("");
+  console.log("");
+  console.log("");
 
   // set profile image here
   const dropPost = document.getElementById('drop-area-post');
   dropPost.style.display = "none";
-  const imgTag = document.createElement('img');
-  imgTag.src = imgurl;
-  imgTag.setAttribute("id", "drop-post-img");
-  imgTag.classList.add("img-fluid");
-  document.getElementById("post-modal-body").appendChild(imgTag);
+  const imgElem = document.createElement('img');
+  imgElem.src = imgurl;
+  imgElem.setAttribute("id", "drop-post-img");
+  imgElem.classList.add("img-fluid");
+  document.getElementById("post-modal-body").appendChild(imgElem);
 }
 
 
