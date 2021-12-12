@@ -339,7 +339,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_71_0";
+  const VERSION = "0_72_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -655,6 +655,8 @@
   cardText.classList.add("card-text");
   const cardPostImage = document.createElement("div");
   cardPostImage.classList.add("card-post-img-holder");
+  cardPostImage.classList.add("d-flex");
+  cardPostImage.classList.add("justify-content-center");
   const cardFooter = document.createElement("div");
   cardFooter.classList.add("card-footer");
   cardBody.append(h6);
@@ -729,6 +731,7 @@
     dropPost.style.display = "block";
     if (document.getElementById("drop-post-img") !== null) {
       document.getElementById("drop-post-img").remove();
+      document.getElementById("drop-post-img-container").remove();
     }
     console.log(allData);
     Object.keys(allData.messages).reduceRight(renderMessages, null);
@@ -908,14 +911,6 @@ async function uploadFile(file0) {
   }
   localStorage.setItem('imgurl', imgurl);
 
-  console.log("");
-  console.log("");
-  console.log("");
-  console.log("uploading from uploadFile");
-  console.log("");
-  console.log("");
-  console.log("");
-
   // set profile image here
   document.querySelectorAll('.create-user-image-container').forEach((largeContainer) => {
 
@@ -980,22 +975,20 @@ async function uploadFilePost(file0) {
   if (imgurl === '') {
     return;
   }
-  console.log("");
-  console.log("");
-  console.log("");
-  console.log("uploading from uploadFilePost");
-  console.log("");
-  console.log("");
-  console.log("");
 
   // set profile image here
   const dropPost = document.getElementById('drop-area-post');
   dropPost.style.display = "none";
   const imgElem = document.createElement('img');
+  const divContainer = document.createElement('div');
+  divContainer.setAttribute("id", "drop-post-img-container");
+  divContainer.classList.add('d-flex');
+  divContainer.classList.add('justify-content-center');
   imgElem.src = imgurl;
   imgElem.setAttribute("id", "drop-post-img");
   imgElem.classList.add("img-fluid");
-  document.getElementById("post-modal-body").appendChild(imgElem);
+  document.getElementById("post-modal-body").appendChild(divContainer);
+  divContainer.appendChild(imgElem);
 }
 
 
