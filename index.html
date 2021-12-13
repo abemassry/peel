@@ -339,7 +339,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_72_0";
+  const VERSION = "0_76_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -686,7 +686,7 @@
     newCard.getElementsByClassName("card-title")[0].append("\u00A0");
 
     newCard.getElementsByClassName("card-title")[0].append(message.user);
-    newCard.getElementsByClassName("card-text")[0].append(message.text);
+    linkify(newCard.getElementsByClassName("card-text")[0], message.text);
     if (typeof allData.messages[index].img !== "undefined" && allData.messages[index].img !== null && allData.messages[index].img !== '') {
       const postimg = document.createElement("img");
       postimg.classList.add("card-post-img");
@@ -708,6 +708,41 @@
   function getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
+
+  function linkify(textElem, inputText) {
+    var replacedText, replacePattern1, replacePattern2, replacePattern3;
+    let trimmedText = inputText;
+    let replaced = false;
+
+    //URLs starting with http://, https://, or ftp://
+    replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    const matches1 = inputText.match(replacePattern1);
+    if (matches1) {
+      matches1.forEach((match) => {
+        trimmedText = replaceWithLink(textElem, trimmedText, match);
+      });
+      textElem.append(trimmedText);
+      replaced = true;
+    }
+
+    if (!replaced) {
+      textElem.append(inputText);
+    }
+  }
+
+  function replaceWithLink(textElem, origText, match) {
+    const before = origText.split(match)[0];
+    const after = origText.split(match)[1];
+    const a = document.createElement('a');
+    const link = document.createTextNode(match);
+    a.appendChild(link);
+    a.href = match;
+    a.setAttribute('target', '_blank');
+    textElem.append(before, a);
+    return after;
+  }
+
+
   document.getElementById("post-modal-button").onclick = function() {
     const postContent = document.getElementById("post-modal-textarea").value;
     console.log("post pressed");
