@@ -237,6 +237,10 @@
         <span id="user-name-sidebar"></span>
       </div>
       <div>Change<br />Picture</div>
+      <br /><br />
+      <div class="user-bio">
+        User Bio
+      </div>
     </div>
   </div>
 
@@ -544,7 +548,11 @@
           console.log(dataObj);
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
-            Object.keys(allData.messages).reduceRight(renderMessages, null);
+            if (Object.keys(displayedMessages).length < 1) {
+              Object.keys(allData.messages).reduce(renderMessages, null);
+            } else {
+              Object.keys(allData.messages).reduceRight(renderMessages, null);
+            }
           }
           if (dataObj.ping) {
             console.log(dataObj);
@@ -674,6 +682,18 @@
     if (displayedMessages[index]) {
       return;
     }
+    const thirtyDaysBefore = new Date(Date.now() - 2592000000);
+    let idxStr = index.toString();
+    idxStr = idxStr.substring(0, idxStr.length - 1);
+    const question = new Date(parseInt(idxStr));
+    if (question < thirtyDaysBefore) {
+      delete allData.messages[index];
+      delete displayedMessages[index];
+      localStorage.setItem('allData', JSON.stringify(allData));
+      sendMessage();
+      return;
+    }
+
     const message = allData.messages[index];
     const newCard = card.cloneNode(true);
     const newHr = hr.cloneNode(true);
@@ -741,7 +761,6 @@
     textElem.append(before, a);
     return after;
   }
-
 
   document.getElementById("post-modal-button").onclick = function() {
     const postContent = document.getElementById("post-modal-textarea").value;
