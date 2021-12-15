@@ -238,7 +238,7 @@
       </div>
       <div>Change<br />Picture</div>
       <br /><br />
-      <div class="user-bio">
+      <div class="user-bio" data-bs-toggle="modal" data-bs-target="#userBioModal">
         User Bio
       </div>
     </div>
@@ -333,6 +333,27 @@
         </div>
         <div class="modal-footer">
           <button type="button" id="done-image-modal-button" data-bs-dismiss="modal" class="btn btn-success">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change bio Modal -->
+  <div class="modal fade" id="userBioModal" tabindex="-1" role="dialog" aria-labelledby="userBioModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userBioModalLabel">
+            Update Bio
+          </h5>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <textarea class="form-control" id="bio-modal-textarea" rows="5"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="done-bio-modal-button" data-bs-dismiss="modal" class="btn btn-success">Done</button>
         </div>
       </div>
     </div>
@@ -877,6 +898,12 @@
     for (let i = 0; i < cardImgs.length; i++) {
       cardImgs[i].src = imgurlEdited;
     }
+  });
+
+  document.getElementById("done-bio-modal-button").addEventListener("click", function() {
+    const bio = document.getElementById("bio-modal-textarea").value;
+
+    // TODO: inside of init change "User Bio" in sidebar from localStorage
   });
 
 
