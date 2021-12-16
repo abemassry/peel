@@ -238,7 +238,7 @@
       </div>
       <div>Change<br />Picture</div>
       <br /><br />
-      <div class="user-bio" data-bs-toggle="modal" data-bs-target="#userBioModal">
+      <div class="user-bio" data-bs-toggle="modal" data-bs-target="#userBioModal" id="user-bio-sidebar">
         User Bio
       </div>
     </div>
@@ -389,10 +389,13 @@
   if (userdata !== null) {
     if (imgurl !== null) {
       initUserImageSidebar(userdata, imgurl);
-      allData.users[userdata] = imgurl;
+      allData.users[userdata].image = imgurl;
     } else {
       initUserImageSidebar(userdata, defaultUserImage);
     }
+  }
+  if (localStorage.getItem('bio')) {
+    initBio(localStorage.getItem('bio'));
   }
 
 
@@ -902,7 +905,10 @@
 
   document.getElementById("done-bio-modal-button").addEventListener("click", function() {
     const bio = document.getElementById("bio-modal-textarea").value;
-
+    allData.users[username].bio = bio;
+    localStorage.setItem('bio', bio);
+    sendMessage();
+    document.getElementById("user-bio-sidebar").textContent = bio;
     // TODO: inside of init change "User Bio" in sidebar from localStorage
   });
 
@@ -926,8 +932,9 @@
     domUserName.append(userdata);
   }
 
-
-
+  function initBio(bio) {
+    document.getElementById("user-bio-sidebar").textContent = bio;
+  }
 
 })
 
