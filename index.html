@@ -364,7 +364,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_76_0";
+  const VERSION = "0_84_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -375,7 +375,7 @@
   var peerConn;
   const defaultUserImage = "https://wsnd.io/mSBHpa9r/default-user.png";
   let imgurl = localStorage.getItem('imgurl');
-  let userdata = localStorage.getItem('userdata');
+
   var connected = false;
   let connectionInterval;
   let allData = {};
@@ -386,13 +386,18 @@
   } else {
     allData = JSON.parse(localStorage.getItem('allData'));
   }
-  if (userdata !== null) {
-    if (imgurl !== null) {
-      initUserImageSidebar(userdata, imgurl);
-      allData.users[userdata].image = imgurl;
-    } else {
-      initUserImageSidebar(userdata, defaultUserImage);
-    }
+  let userdata = {};
+  userdata.username = "";
+  userdata.img = "";
+  userdata.bio = "";
+  if (!localStorage.getItem('userdata')) {
+    localStorage.setItem('userdata', JSON.stringify(userdata));
+    initUserImageSidebar(userdata);
+    allData.users[userdata.username] = userdata;
+  } else {
+    userdata = JSON.parse(localStorage.getItem('userdata'));
+    userdata.img = defaultUserImage;
+    initUserImageSidebar(userdata);
   }
   if (localStorage.getItem('bio')) {
     initBio(localStorage.getItem('bio'));
@@ -722,7 +727,7 @@
     const newCard = card.cloneNode(true);
     const newHr = hr.cloneNode(true);
     if (typeof allData.users[message.user] !== "undefined" && allData.users[message.user] !== null) {
-      newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user];
+      newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user].img;
     } else {
       newCard.getElementsByClassName("card-user-img")[0].src = defaultUserImage;
     }
@@ -794,7 +799,7 @@
     const strNow = now.toString() + getRandomInt(9).toString();
     const nowInt = parseInt(strNow);
     allData.messages[nowInt] = {
-      "user": userdata,
+      "user": userdata.username,
       "text": postContent,
     };
     let imgsrc = '';
@@ -856,7 +861,7 @@
   }
 
   function displayUserCreate() {
-    if (localStorage.getItem('userdata') === null) {
+    if (JSON.parse(localStorage.getItem('userdata')).username === "") {
       const createUserModal = new bootstrap.Modal(document.getElementById('createUserModal'));
       createUserModal.show();
     }
@@ -875,7 +880,7 @@
         usernameModalInput.classList.remove("is-invalid");
     } else {
       document.getElementById("create-user-modal-button").disabled = true;
-      if (typeof allData.users[usernameModalInput.value] !== "undefined" && connected) {
+      if (typeof allData.users[usernameModalInput.value].username !== "undefined" && connected) {
         document.getElementById("validation-user-feedback").textContent = "Username taken";
         usernameModalInput.classList.add("is-invalid");
       }
@@ -884,17 +889,18 @@
   }
 
   document.getElementById("create-user-modal-button").addEventListener("click", function() {
-    localStorage.setItem('userdata', usernameModalInput.value);
-    userdata = usernameModalInput.value;
-    allData.users[usernameModalInput.value] = localStorage.getItem('imgurl');
-    imgurl = localStorage.getItem('imgurl');
-    initUserImageSidebar(userdata, imgurl);
+    userdata.username = usernameModalInput.value;
+    userdata.img = localStorage.getItem('imgurl');
+    localStorage.setItem('userdata', JSON.stringify(userdata));
+    allData.users[userdata.username] = userdata;
+    initUserImageSidebar(userdata);
   });
 
   document.getElementById("done-image-modal-button").addEventListener("click", function() {
-    const username = localStorage.getItem('userdata');
-    const imgurlEdited = localStorage.getItem('imgurl');
-    allData.users[username] = imgurlEdited;
+    const userdata = localStorage.getItem('userdata');
+    const username = userdata.username;
+    const imgurlEdited = userdata.img;
+    allData.users[username] = userdata;
     localStorage.setItem('allData', JSON.stringify(allData));
     sendMessage();
     const cardImgs = document.getElementsByClassName("card-user-img-sidebar");
@@ -913,7 +919,11 @@
   });
 
 
-  function initUserImageSidebar(userdata, imgurl) {
+  function initUserImageSidebar(userdata) {
+    if (typeof document.getElementsByClassName('card-user-img-link')[0] !== "undefined") {
+      document.getElementsByClassName('card-user-img-link')[0].remove();
+    }
+
     const domUserImageDiv = document.getElementById("user-image-sidebar");
     const userimg = document.createElement("img");
     const imglink = document.createElement("a");
@@ -921,7 +931,7 @@
     imglink.setAttribute('data-bs-toggle', "modal");
     imglink.setAttribute('data-bs-target', "#userImageModal");
     const domUserName = document.getElementById("user-name-sidebar");
-    userimg.src = imgurl;
+    userimg.src = userdata.img;
     // add a href tag to image to open modal to change picture
     userimg.classList.add("card-user-img");
     userimg.classList.add("card-user-img-sidebar");
@@ -929,7 +939,7 @@
     imglink.append(userimg);
     domUserName.append("\u00A0");
     domUserName.append("\u00A0");
-    domUserName.append(userdata);
+    domUserName.append(userdata.username);
   }
 
   function initBio(bio) {
