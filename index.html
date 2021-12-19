@@ -100,6 +100,12 @@
   .card-text {
     margin-left: 59px;
   }
+
+  .user-bio {
+    background-color: white;
+    white-space: pre;
+  }
+
   #error {
     color: red;
   }
@@ -364,7 +370,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_84_0";
+  const VERSION = "0_85_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -388,7 +394,7 @@
   }
   let userdata = {};
   userdata.username = "";
-  userdata.img = "";
+  userdata.img = defaultUserImage;
   userdata.bio = "";
   if (!localStorage.getItem('userdata')) {
     localStorage.setItem('userdata', JSON.stringify(userdata));
@@ -396,7 +402,6 @@
     allData.users[userdata.username] = userdata;
   } else {
     userdata = JSON.parse(localStorage.getItem('userdata'));
-    userdata.img = defaultUserImage;
     initUserImageSidebar(userdata);
   }
   if (localStorage.getItem('bio')) {
@@ -726,7 +731,7 @@
     const message = allData.messages[index];
     const newCard = card.cloneNode(true);
     const newHr = hr.cloneNode(true);
-    if (typeof allData.users[message.user] !== "undefined" && allData.users[message.user] !== null) {
+    if (typeof allData.users[message.user].img !== "undefined" && allData.users[message.user].img !== null) {
       newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user].img;
     } else {
       newCard.getElementsByClassName("card-user-img")[0].src = defaultUserImage;
@@ -897,7 +902,7 @@
   });
 
   document.getElementById("done-image-modal-button").addEventListener("click", function() {
-    const userdata = localStorage.getItem('userdata');
+    const userdata = JSON.parse(localStorage.getItem('userdata'));
     const username = userdata.username;
     const imgurlEdited = userdata.img;
     allData.users[username] = userdata;
@@ -911,11 +916,12 @@
 
   document.getElementById("done-bio-modal-button").addEventListener("click", function() {
     const bio = document.getElementById("bio-modal-textarea").value;
-    allData.users[username].bio = bio;
-    localStorage.setItem('bio', bio);
-    sendMessage();
-    document.getElementById("user-bio-sidebar").textContent = bio;
-    // TODO: inside of init change "User Bio" in sidebar from localStorage
+    if (bio !== "") {
+      allData.users[userdata.username].bio = bio;
+      localStorage.setItem('bio', bio);
+      sendMessage();
+      document.getElementById("user-bio-sidebar").textContent = bio;
+    }
   });
 
 
@@ -944,6 +950,7 @@
 
   function initBio(bio) {
     document.getElementById("user-bio-sidebar").textContent = bio;
+    document.getElementById("bio-modal-textarea").value = bio;
   }
 
 })
@@ -956,7 +963,7 @@ Array.from(dropAreas).forEach((dropArea) => {
   console.log("the foreach works");
   // Prevent default drag behaviors
   ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropArea.addEventListener(eventName, preventDefaults, false)   
+    dropArea.addEventListener(eventName, preventDefaults, false)
     document.body.addEventListener(eventName, preventDefaults, false)
   })
 
@@ -1016,6 +1023,9 @@ async function uploadFile(file0) {
     const imgTag = document.createElement('img');
     imgTag.src = imgurl;
     largeContainer.appendChild(imgTag);
+    userdata = JSON.parse(localStorage.getItem('userdata'));
+    userdata.img = imgurl;
+    localStorage.setItem('userdata', JSON.stringify(userdata));
   });
 }
 
