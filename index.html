@@ -103,9 +103,21 @@
   .card-user-name-span {
     margin-left: 9px;
   }
+  .card-user-link {
+    cursor: pointer;
+  }
 
   .user-bio {
     background-color: white;
+    white-space: pre;
+  }
+
+  .modal-user-image {
+    width: 75px;
+    max-height: 75px;
+    border-radius: 50%;
+  }
+  .user-bio-modal-content {
     white-space: pre;
   }
 
@@ -373,7 +385,10 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="displayUserBioModalLabel"></h5>
+          <h5 class="modal-title" id="displayUserBioModalLabel">
+            <span id="displayUserBioModalImageContainer"></span>
+            <span id="displayUserBioModalName"></span>
+          </h5>
         </div>
         <div class="modal-body">
           <div class="container">
@@ -960,24 +975,27 @@
     const link = event.relatedTarget;
     // Extract info from data-bs-* attributes
     const username = link.getAttribute('data-bs-username');
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log(username);
-    console.log("");
-    console.log("");
-    console.log("");
-    console.log("");
 
     // Update the modal's content.
-    var modalTitle = displayUserBioModal.querySelector('.modal-title')
-    var modalBody = displayUserBioModal.querySelector('.modal-body')
-
-    modalTitle.textContent = username;
-    modalBody.textContent = allData.users[username].bio;
-
+    const modalTitle = displayUserBioModal.querySelector('.modal-title');
+    const modalBody = displayUserBioModal.querySelector('.user-bio-modal-content');
+    const modalImageContainer = displayUserBioModal.querySelector('#displayUserBioModalImageContainer');
+    removeAllChildren(modalImageContainer);
+    const modalImage = document.createElement('img');
+    modalImage.classList.add('modal-user-image');
+    modalImage.src = allData.users[username].img;
+    modalImageContainer.append(modalImage);
+    modalTitle.querySelector('#displayUserBioModalName').textContent = username;
+    removeAllChildren(modalBody);
+    linkify(modalBody, allData.users[username].bio);
   });
+
+  function removeAllChildren(element) {
+    while(element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+  }
+
 
 
   function initUserImageSidebar(userdata) {
