@@ -407,11 +407,12 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_90_0";
+  const VERSION = "0_92_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
   const peerDistribtrS = {};
+  const currentConnectedIDs = {};
   var firstTry = true;
   var firstTryPeer = true;
   var peer;
@@ -455,6 +456,33 @@
       }
     }
     localStorage.setItem('allData', JSON.stringify(allData));
+  }
+
+  function updateConnectedUsers(dataObj) {
+    const username = dataObj.username;
+    const origDistID = dataObj.originator;
+    const now = Date.now();
+    currentConnectedIDs[origDistID] = {
+      "distID": origDistID,
+      "username": username,
+      "time": now
+    };
+    allData.users[username].currentID = origDistID;
+    allData.users[username].lastActive = now;
+    const oneMin = new Date(Date.now() - 60000);
+    let changed = false;
+    for (let key of Object.keys(currentConnectedIDs)) {
+      const timestamp = currentConnectedIDs[key].time;
+      const question = new Date(parseInt(timestamp));
+      if (question < oneMin) {
+        const localStoreUsername = currentConnectedIDs[key].username;
+        allData.users[localStoreUsername].currentID = "";
+        changed = true;
+      }
+    }
+    if (changed) {
+      sendMessage();
+    }
   }
 
   function sendMessage() {
@@ -509,6 +537,7 @@
       "originator": distribtrID,
       "src_peer_id": distribtrID,
       "dest_peer_id": peerDistribtrID,
+      "username": userdata.username,
       "ping": true
     };
     console.log("polling for messages");
@@ -634,6 +663,7 @@
               }
               sendAllDataToOneFan(dataObj.originator);
             }
+            updateConnectedUsers(dataObj);
           } else {
             let newDataObj = Object.assign({}, dataObj);
             newDataObj.src_peer_id = distribtrID;
