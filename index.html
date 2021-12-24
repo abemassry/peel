@@ -121,6 +121,10 @@
     white-space: pre;
   }
 
+  #displayUserBioModalDirectMessage {
+    float: right;
+  }
+
   #error {
     color: red;
   }
@@ -389,6 +393,7 @@
             <span id="displayUserBioModalImageContainer"></span>
             <span id="displayUserBioModalName"></span>
           </h5>
+          <span id="displayUserBioModalDirectMessage"></span>
         </div>
         <div class="modal-body">
           <div class="container">
@@ -407,7 +412,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_92_0";
+  const VERSION = "0_95_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -1018,6 +1023,13 @@
     modalTitle.querySelector('#displayUserBioModalName').textContent = username;
     removeAllChildren(modalBody);
     linkify(modalBody, allData.users[username].bio);
+
+    const modalDirectMessageContainer = displayUserBioModal.querySelector('#displayUserBioModalDirectMessage');
+    removeAllChildren(modalDirectMessageContainer);
+    dmLink = document.createElement('a');
+    dmLink.textContent = "Direct Message";
+    modalDirectMessageContainer.append(dmLink);
+
   });
 
   function removeAllChildren(element) {
