@@ -429,7 +429,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_98_0";
+  const VERSION = "0_99_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -1057,15 +1057,24 @@
     toastBody.append(toastConversationArea);
 
     const toastInputContainer = document.createElement('div');
+    toastInputContainer.classList.add('row');
+    toastInputContainer.classList.add('g-2');
+    const toastInputDiv = document.createElement('div');
+    toastInputDiv.classList.add('col-auto');
     const toastInput = document.createElement('input');
+    toastInput.classList.add('form-control');
     toastInput.setAttribute('type', 'text');
-    toastInputContainer.append(toastInput);
+    toastInputDiv.append(toastInput);
+    toastInputContainer.append(toastInputDiv);
 
+    const toastSubmitButtonDiv = document.createElement('div');
+    toastSubmitButtonDiv.classList.add('col-auto');
     const toastSubmitButton = document.createElement('button');
     toastSubmitButton.classList.add('btn');
     toastSubmitButton.classList.add('btn-success');
     toastSubmitButton.textContent = "Send";
-    toastInputContainer.append(toastSubmitButton);
+    toastSubmitButtonDiv.append(toastSubmitButton);
+    toastInputContainer.append(toastSubmitButtonDiv);
     toastBody.append(toastInputContainer);
 
     toast.append(toastHeader);
