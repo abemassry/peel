@@ -124,6 +124,20 @@
   #displayUserBioModalDirectMessage {
     float: right;
   }
+  #displayUserBioModalDirectMessage a {
+    cursor: pointer;
+  }
+  #toastContainer {
+    margin-bottom: 34px;
+  }
+  #toastContainer img {
+    width: 50px;
+    max-height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+
 
   #error {
     color: red;
@@ -407,12 +421,15 @@
     </div>
   </div>
 
+  <!-- DM toast -->
+  <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+
 <!-- JavaScript Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_95_0";
+  const VERSION = "0_98_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -472,6 +489,9 @@
       "username": username,
       "time": now
     };
+    if (typeof allData.users[username] === "undefined") {
+      return;
+    }
     allData.users[username].currentID = origDistID;
     allData.users[username].lastActive = now;
     const oneMin = new Date(Date.now() - 60000);
@@ -1004,6 +1024,57 @@
     }
   });
 
+  function makeToast(username) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.setAttribute('data-bs-autohide', 'false');
+
+    const toastHeader = document.createElement('div');
+    toastHeader.classList.add('toast-header');
+    const toastHeaderImg = document.createElement('img');
+    toastHeaderImg.src = allData.users[username].img;
+    toastHeader.append(toastHeaderImg);
+    const toastStrong = document.createElement('strong');
+    toastStrong.classList.add('me-auto');
+    toastStrong.textContent = username;
+    toastHeader.append(toastStrong);
+    const toastSmall = document.createElement('small');
+    toastHeader.append(toastSmall);
+    const toastHeaderButton = document.createElement('button');
+    toastHeaderButton.classList.add('btn-close');
+    toastHeaderButton.setAttribute('type', 'button');
+    toastHeaderButton.setAttribute('data-bs-dismiss', 'toast');
+    toastHeaderButton.setAttribute('aria-label', 'Close');
+    toastHeader.append(toastHeaderButton);
+
+    const toastBody = document.createElement('div');
+    toastBody.classList.add('toast-body');
+
+    const toastConversationArea = document.createElement('div');
+    toastBody.append(toastConversationArea);
+
+    const toastInputContainer = document.createElement('div');
+    const toastInput = document.createElement('input');
+    toastInput.setAttribute('type', 'text');
+    toastInputContainer.append(toastInput);
+
+    const toastSubmitButton = document.createElement('button');
+    toastSubmitButton.classList.add('btn');
+    toastSubmitButton.classList.add('btn-success');
+    toastSubmitButton.textContent = "Send";
+    toastInputContainer.append(toastSubmitButton);
+    toastBody.append(toastInputContainer);
+
+    toast.append(toastHeader);
+    toast.append(toastBody);
+    const toastContainer = document.getElementById("toastContainer");
+    toastContainer.append(toast);
+    return toast;
+  }
+
   document.getElementById("displayUserBioModal").addEventListener("show.bs.modal", function(event) {
     const displayUserBioModal = document.getElementById("displayUserBioModal");
     // Button that triggered the modal
@@ -1026,8 +1097,18 @@
 
     const modalDirectMessageContainer = displayUserBioModal.querySelector('#displayUserBioModalDirectMessage');
     removeAllChildren(modalDirectMessageContainer);
-    dmLink = document.createElement('a');
+    dmLink = document.createElement('button');
+    dmLink.classList.add('btn');
+    dmLink.classList.add('btn-success');
+    dmLink.setAttribute('data-bs-dismiss', 'modal');
     dmLink.textContent = "Direct Message";
+    dmLink.addEventListener('click', function() {
+      const toastContainer = makeToast(username);
+      const toast = new bootstrap.Toast(toastContainer);
+      console.log('show toast');
+      toast.show();
+      console.log('toast shown');
+    });
     modalDirectMessageContainer.append(dmLink);
 
   });
