@@ -429,12 +429,13 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_99_0";
+  const VERSION = "0_5_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
   const peerDistribtrS = {};
   const currentConnectedIDs = {};
+  const dmList = [];
   var firstTry = true;
   var firstTryPeer = true;
   var peer;
@@ -501,8 +502,10 @@
       const question = new Date(parseInt(timestamp));
       if (question < oneMin) {
         const localStoreUsername = currentConnectedIDs[key].username;
-        allData.users[localStoreUsername].currentID = "";
-        changed = true;
+        if (typeof allData.users[localStoreUsername] !== "undefined") {
+          allData.users[localStoreUsername].currentID = "";
+          changed = true;
+        }
       }
     }
     if (changed) {
@@ -572,6 +575,7 @@
 
   function addSymmetricConnection(newID, newDataObj) {
     let peerError = false;
+    console.log(peerDistribtrS);
     console.log("attempting new peer connection "+newID);
     const pConn = peer.connect(VERSION+'_Distribtr' + newID);
     // on open will be launch when you successfully connect to PeerServer
@@ -670,10 +674,24 @@
           var dataObj = JSON.parse(data);
           console.log("got:");
           console.log(dataObj);
+          if (dataObj.dm === true) {
+            console.log('first DM');
+            console.log(dataObj);
+            if (typeof peerDistribtrS[dataObj.senderID] === "undefined") {
+              dmList.push(dataObj.senderID);
+              addSymmetricConnection(dataObj.senderID, "dontSend");
+            }
+            setupToast(dataObj.username);
+            return;
+          }
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
             if (Object.keys(displayedMessages).length < 1) {
               Object.keys(allData.messages).reduce(renderMessages, null);
+              userdata.currentID = distribtrID;
+              userdata.lastActive = Date.now();
+              allData.users[userdata.username] = userdata;
+              sendMessage();
             } else {
               Object.keys(allData.messages).reduceRight(renderMessages, null);
             }
@@ -695,16 +713,20 @@
             newDataObj.dest_peer_id = peerDistribtrID;
 
             // send fanout
-            for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
-              if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined") {
-                console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
-                console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
-                if (newPeerConn !== null) {
-                  newPeerConn.send(JSON.stringify(newDataObj));
-                }
-                sendList[newID] = true;
-              }
-            }
+            //for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
+            //  if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined" && dmList.includes(dataObj.src_peer_id) === false) {
+            //    console.log("fanout");
+            //    console.log(peerDistribtrS);
+            //    console.log(newDataObj);
+            //    console.log('being sent');
+            //    console.log("sending from: "+ distribtrID+ ", to: "+newID);
+            //    console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
+            //    //if (newPeerConn !== null) {
+            //    //  newPeerConn.send(JSON.stringify(newDataObj));
+            //    //}
+            //    sendList[newID] = true;
+            //  }
+            //}
 
             if (dataObj.src_peer_id !== peerDistribtrID && dataObj.originator !== peerDistribtrID && dataObj.src_peer_id !== distribtrID && dataObj.originator !== distribtrID) {
               console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
@@ -997,8 +1019,11 @@
     userdata.username = usernameModalInput.value;
     udata.username = userdata.username;
     localStorage.setItem('userdata', JSON.stringify(udata));
+    userdata.currentID = distribtrID;
+    userdata.lastActive = Date.now();
     allData.users[userdata.username] = userdata;
     initUserImageSidebar(userdata);
+    sendMessage();
   });
 
   document.getElementById("done-image-modal-button").addEventListener("click", function() {
@@ -1054,6 +1079,7 @@
     toastBody.classList.add('toast-body');
 
     const toastConversationArea = document.createElement('div');
+    toastConversationArea.classList.add('toast-conversation-area');
     toastBody.append(toastConversationArea);
 
     const toastInputContainer = document.createElement('div');
@@ -1063,6 +1089,7 @@
     toastInputDiv.classList.add('col-auto');
     const toastInput = document.createElement('input');
     toastInput.classList.add('form-control');
+    toastInput.classList.add('dm-input');
     toastInput.setAttribute('type', 'text');
     toastInputDiv.append(toastInput);
     toastInputContainer.append(toastInputDiv);
@@ -1072,6 +1099,7 @@
     const toastSubmitButton = document.createElement('button');
     toastSubmitButton.classList.add('btn');
     toastSubmitButton.classList.add('btn-success');
+    toastSubmitButton.classList.add('dm-send');
     toastSubmitButton.textContent = "Send";
     toastSubmitButtonDiv.append(toastSubmitButton);
     toastInputContainer.append(toastSubmitButtonDiv);
@@ -1112,15 +1140,39 @@
     dmLink.setAttribute('data-bs-dismiss', 'modal');
     dmLink.textContent = "Direct Message";
     dmLink.addEventListener('click', function() {
-      const toastContainer = makeToast(username);
-      const toast = new bootstrap.Toast(toastContainer);
-      console.log('show toast');
-      toast.show();
-      console.log('toast shown');
+      setupToast(username);
     });
     modalDirectMessageContainer.append(dmLink);
 
   });
+
+  function setupToast(username) {
+    const toastContainer = makeToast(username);
+    const toast = new bootstrap.Toast(toastContainer);
+    toast.show();
+    const toastConversationArea = toastContainer.querySelector('.toast-conversation-area');
+    const dmSendButton = toastContainer.querySelector('.dm-send');
+    const remoteID = allData.users[username].currentID;
+    console.log('do we have remote ID');
+    console.log(remoteID);
+    dmSendButton.addEventListener('click', async function() {
+      if (typeof peerDistribtrS[remoteID] === "undefined") {
+        dmList.push(remoteID);
+        addSymmetricConnection(remoteID, "dontSend");
+      }
+      dmInput = toastContainer.querySelector('.dm-input');
+      const dmItem = document.createElement('div');
+      dmItem.textContent = userdata.username + ": " + dmInput.value;
+      toastConversationArea.append(dmItem);
+      const message = {"dm": true, "message": dmInput.value, "username": userdata.username, "senderID": distribtrID};
+      console.log(peerDistribtrS);
+      while (typeof peerDistribtrS[remoteID] === "undefined") {
+        await sleep(500);
+      }
+      peerDistribtrS[remoteID].send(JSON.stringify(message));
+      dmInput.value = "";
+    });
+  }
 
   function removeAllChildren(element) {
     while(element.firstChild) {
