@@ -1189,6 +1189,19 @@
       peerDistribtrS[remoteID].send(JSON.stringify(message));
       dmInput.value = "";
     });
+    const dmCallButton = toastContainer.querySelector('.toast-header').querySelector('b');
+    dmCallButton.addEventListener('click', async function() {
+      const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+      getUserMedia({video: false, audio: true}, function(stream) {
+        const call = peer.call(VERSION+'_Distribtr' + remoteID, stream);
+        call.on('stream', function(remoteStream) {
+          // audio somehow
+        });
+      }, function(err) {
+        console.log('Failed to get local stream' ,err);
+      });
+
+    });
   }
 
   function addMessageToConvo(message, username) {
