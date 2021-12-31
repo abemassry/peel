@@ -137,6 +137,10 @@
     margin-right: 10px;
   }
 
+  .toast-header span {
+    margin-right: 10px;
+  }
+
 
 
   #error {
@@ -681,7 +685,10 @@
               dmList.push(dataObj.senderID);
               addSymmetricConnection(dataObj.senderID, "dontSend");
             }
-            setupToast(dataObj.username);
+            if (typeof document.getElementById("convo-"+dataObj.username) === "undefined" || document.getElementById("convo-"+dataObj.username) === null) {
+              setupToast(dataObj.username);
+            }
+            addMessageToConvo(dataObj.message, dataObj.username);
             return;
           }
           if (typeof dataObj.ping === "undefined") {
@@ -1065,7 +1072,16 @@
     const toastStrong = document.createElement('strong');
     toastStrong.classList.add('me-auto');
     toastStrong.textContent = username;
+    const toastBold = document.createElement('b');
+    const toastPhone = document.createElement('i');
+    toastPhone.classList.add('bi');
+    toastPhone.classList.add('bi-telephone-fill');
+    const toastCallText = document.createElement('span');
+    toastCallText.textContent = "Call ";
+    toastBold.append(toastCallText);
+    toastBold.append(toastPhone);
     toastHeader.append(toastStrong);
+    toastHeader.append(toastBold);
     const toastSmall = document.createElement('small');
     toastHeader.append(toastSmall);
     const toastHeaderButton = document.createElement('button');
@@ -1151,6 +1167,7 @@
     const toast = new bootstrap.Toast(toastContainer);
     toast.show();
     const toastConversationArea = toastContainer.querySelector('.toast-conversation-area');
+    toastConversationArea.setAttribute('id', "convo-"+username);
     const dmSendButton = toastContainer.querySelector('.dm-send');
     const remoteID = allData.users[username].currentID;
     console.log('do we have remote ID');
@@ -1173,6 +1190,17 @@
       dmInput.value = "";
     });
   }
+
+  function addMessageToConvo(message, username) {
+    const toastConversationArea = document.getElementById("convo-"+username);
+    const dmItem = document.createElement('div');
+    dmItem.textContent = username + ": " + message;
+    toastConversationArea.append(dmItem);
+  }
+
+
+
+
 
   function removeAllChildren(element) {
     while(element.firstChild) {
