@@ -433,7 +433,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_5_0";
+  const VERSION = "0_8_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -475,7 +475,9 @@
 
   function mergeData(newAllData) {
     for (let key of Object.keys(newAllData.users)) {
-      allData.users[key] = newAllData.users[key];
+      allData.users[key].username = newAllData.users[key].username;
+      allData.users[key].img = newAllData.users[key].img;
+      allData.users[key].bio = newAllData.users[key].bio;
     }
     for (let key of Object.keys(newAllData.messages)) {
       if (typeof allData.messages[key] === "undefined") {
@@ -523,7 +525,8 @@
       "src_peer_id": distribtrID,
       "dest_peer_id": peerDistribtrID,
       "message": allData,
-      "peers": [distribtrID]
+      "peers": [distribtrID],
+      "username": userdata.username
     };
     console.log(dataToSend);
     console.log('sending');
@@ -693,6 +696,8 @@
           }
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
+            allData.users[dataObj.username].currentID = dataObj.originator;
+            allData.users[dataObj.username].lastActive = Date.now();
             if (Object.keys(displayedMessages).length < 1) {
               Object.keys(allData.messages).reduce(renderMessages, null);
               userdata.currentID = distribtrID;
@@ -704,6 +709,8 @@
             }
           }
           if (dataObj.ping) {
+            allData.users[dataObj.username].currentID = dataObj.originator;
+            allData.users[dataObj.username].lastActive = Date.now();
             console.log(dataObj);
             if (dataObj.src_peer_id === peerDistribtrID) {
               sendAllDataToPeer();
@@ -767,6 +774,19 @@
             }
           }
         }
+
+      });
+      peer.on('call', async function(call) {
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+        call.answer(stream); // Answer the call with an A/V stream.
+        call.on('stream', function(remoteStream) {
+          console.log('recieved call');
+        });
+      } catch(err) {
+        console.log('Failed to get local stream' ,err);
+      }
 
       });
     });
@@ -1191,15 +1211,18 @@
     });
     const dmCallButton = toastContainer.querySelector('.toast-header').querySelector('b');
     dmCallButton.addEventListener('click', async function() {
-      const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-      getUserMedia({video: false, audio: true}, function(stream) {
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+
         const call = peer.call(VERSION+'_Distribtr' + remoteID, stream);
         call.on('stream', function(remoteStream) {
+          console.log('calling now');
           // audio somehow
         });
-      }, function(err) {
+      } catch(err) {
         console.log('Failed to get local stream' ,err);
-      });
+      }
 
     });
   }
