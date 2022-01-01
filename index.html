@@ -433,7 +433,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_8_0";
+  const VERSION = "0_9_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -696,8 +696,10 @@
           }
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
-            allData.users[dataObj.username].currentID = dataObj.originator;
-            allData.users[dataObj.username].lastActive = Date.now();
+            if (typeof allData.users[dataObj.username] !== "undefined") {
+              allData.users[dataObj.username].currentID = dataObj.originator;
+              allData.users[dataObj.username].lastActive = Date.now();
+            }
             if (Object.keys(displayedMessages).length < 1) {
               Object.keys(allData.messages).reduce(renderMessages, null);
               userdata.currentID = distribtrID;
