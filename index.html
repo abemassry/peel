@@ -709,8 +709,10 @@
             }
           }
           if (dataObj.ping) {
-            allData.users[dataObj.username].currentID = dataObj.originator;
-            allData.users[dataObj.username].lastActive = Date.now();
+            if (typeof allData.users[dataObj.username] !== "undefined") {
+              allData.users[dataObj.username].currentID = dataObj.originator;
+              allData.users[dataObj.username].lastActive = Date.now();
+            }
             console.log(dataObj);
             if (dataObj.src_peer_id === peerDistribtrID) {
               sendAllDataToPeer();
