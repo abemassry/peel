@@ -433,7 +433,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_9_0";
+  const VERSION = "0_10_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -475,9 +475,11 @@
 
   function mergeData(newAllData) {
     for (let key of Object.keys(newAllData.users)) {
-      allData.users[key].username = newAllData.users[key].username;
-      allData.users[key].img = newAllData.users[key].img;
-      allData.users[key].bio = newAllData.users[key].bio;
+      if (typeof allData.users[key] !== "undefined") {
+        allData.users[key].username = newAllData.users[key].username;
+        allData.users[key].img = newAllData.users[key].img;
+        allData.users[key].bio = newAllData.users[key].bio;
+      }
     }
     for (let key of Object.keys(newAllData.messages)) {
       if (typeof allData.messages[key] === "undefined") {
