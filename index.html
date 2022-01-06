@@ -433,7 +433,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_11_0";
+  const VERSION = "0_12_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -884,7 +884,7 @@
     const newHr = hr.cloneNode(true);
     const userNameLink = newCard.getElementsByClassName("card-user-link")[0];
     userNameLink.setAttribute('data-bs-username', message.user);
-    if (typeof allData.users[message.user].img !== "undefined" && allData.users[message.user].img !== null) {
+    if (typeof allData.users[message.user] !== "undefined" && typeof allData.users[message.user].img !== "undefined" && allData.users[message.user].img !== null) {
       newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user].img;
     } else {
       newCard.getElementsByClassName("card-user-img")[0].src = defaultUserImage;
