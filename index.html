@@ -433,7 +433,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_12_0";
+  const VERSION = "0_13_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -479,8 +479,15 @@
         allData.users[key].username = newAllData.users[key].username;
         allData.users[key].img = newAllData.users[key].img;
         allData.users[key].bio = newAllData.users[key].bio;
+      } else {
+        allData.users[key] = {
+          "username": newAllData.users[key].username,
+          "img": newAllData.users[key].img,
+          "bio": newAllData.users[key].bio
+        };
       }
     }
+
     for (let key of Object.keys(newAllData.messages)) {
       if (typeof allData.messages[key] === "undefined") {
         allData.messages[key] = newAllData.messages[key];
@@ -1168,23 +1175,25 @@
     removeAllChildren(modalImageContainer);
     const modalImage = document.createElement('img');
     modalImage.classList.add('modal-user-image');
-    modalImage.src = allData.users[username].img;
-    modalImageContainer.append(modalImage);
-    modalTitle.querySelector('#displayUserBioModalName').textContent = username;
-    removeAllChildren(modalBody);
-    linkify(modalBody, allData.users[username].bio);
+    if (typeof allData.users[username] !== "undefined") {
+      modalImage.src = allData.users[username].img;
+      modalImageContainer.append(modalImage);
+      modalTitle.querySelector('#displayUserBioModalName').textContent = username;
+      removeAllChildren(modalBody);
+      linkify(modalBody, allData.users[username].bio);
 
-    const modalDirectMessageContainer = displayUserBioModal.querySelector('#displayUserBioModalDirectMessage');
-    removeAllChildren(modalDirectMessageContainer);
-    dmLink = document.createElement('button');
-    dmLink.classList.add('btn');
-    dmLink.classList.add('btn-success');
-    dmLink.setAttribute('data-bs-dismiss', 'modal');
-    dmLink.textContent = "Direct Message";
-    dmLink.addEventListener('click', function() {
-      setupToast(username);
-    });
-    modalDirectMessageContainer.append(dmLink);
+      const modalDirectMessageContainer = displayUserBioModal.querySelector('#displayUserBioModalDirectMessage');
+      removeAllChildren(modalDirectMessageContainer);
+      dmLink = document.createElement('button');
+      dmLink.classList.add('btn');
+      dmLink.classList.add('btn-success');
+      dmLink.setAttribute('data-bs-dismiss', 'modal');
+      dmLink.textContent = "Direct Message";
+      dmLink.addEventListener('click', function() {
+        setupToast(username);
+      });
+      modalDirectMessageContainer.append(dmLink);
+    }
 
   });
 
