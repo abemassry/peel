@@ -433,7 +433,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_15_0";
+  const VERSION = "0_16_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
@@ -820,7 +820,7 @@
     console.log('recieved call');
     const audio = document.createElement('audio');
     audio.setAttribute('id', 'phone-call');
-    audio.src = window.URL.createObjectURL(stream);
+    audio.srcObject = stream;
     audio.onloadedmetadata = function(e) {
       console.log('now playing the audio');
       audio.play();
