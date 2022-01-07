@@ -790,17 +790,15 @@
 
       });
       peer.on('call', async function(call) {
-      let stream = null;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
-        call.answer(stream); // Answer the call with an A/V stream.
-        call.on('stream', function(remoteStream) {
-          console.log('recieved call');
-        });
-      } catch(err) {
-        console.log('Failed to get local stream' ,err);
-      }
-
+        let stream = null;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+          call.answer(stream); // Answer the call with an A/V stream.
+          console.log("answering call");
+          call.on('stream', onReceiveStream);
+        } catch(err) {
+          console.log('Failed to get local stream' ,err);
+        }
       });
     });
     peer.on('error', function(err) {
@@ -817,6 +815,18 @@
     });
 
   }
+
+  function onReceiveStream(stream) {
+    console.log('recieved call');
+    const audio = document.createElement('audio');
+    audio.setAttribute('id', 'phone-call');
+    audio.src = window.URL.createObjectURL(stream);
+    audio.onloadedmetadata = function(e) {
+      console.log('now playing the audio');
+      audio.play();
+    }
+  }
+
 
 
   var sequential_peer_id;
@@ -1231,10 +1241,8 @@
         stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
 
         const call = peer.call(VERSION+'_Distribtr' + remoteID, stream);
-        call.on('stream', function(remoteStream) {
-          console.log('calling now');
-          // audio somehow
-        });
+        console.log('calling now');
+        call.on('stream', onReceiveStream);
       } catch(err) {
         console.log('Failed to get local stream' ,err);
       }
