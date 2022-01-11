@@ -693,6 +693,11 @@
           if (dataObj.dm === true) {
             console.log('first DM');
             console.log(dataObj);
+            if (dataObj.endCall === true) {
+              const hangUpButton = document.getElementById('hangupButton');
+              hangupButton.click();
+              return;
+            }
             if (typeof peerDistribtrS[dataObj.senderID] === "undefined") {
               dmList.push(dataObj.senderID);
               addSymmetricConnection(dataObj.senderID, "dontSend");
@@ -824,8 +829,42 @@
     audio.onloadedmetadata = function(e) {
       console.log('now playing the audio');
       audio.play();
+      // turn call button into hangup button
+      const dmCallButton = document.getElementById('toastContainer').querySelector('b');
+      const username = dmCallButton.getAttribute('data-dmusername');
+      dmCallButton.style.display = "none";
+      const dmHangupButton = document.createElement('b');
+      dmHangupButton.setAttribute('id', 'hangupButton');
+      dmHangupButton.classList.add('hangup-button');
+      dmHangupButtonSpan = document.createElement('span');
+      dmHangupButtonIcon = document.createElement('i');
+      dmHangupButtonSpan.textContent = "Hang Up ";
+      dmHangupButtonIcon.classList.add('bi-telephone-x-fill');
+      dmHangupButton.append(dmHangupButtonSpan);
+      dmHangupButton.append(dmHangupButtonIcon);
+      const closeToastButton = document.getElementById('toastContainer').querySelector('.btn-close');
+      document.getElementById('toastContainer').querySelector('.toast-header').insertBefore(dmHangupButton, closeToastButton);
+      const hangUpCall = function() {
+        audio.pause();
+        const tracks = stream.getTracks();
+        tracks.forEach(function(track) {
+          track.stop();
+        });
+        const message = {"dm": true, "endCall": true, "message": "", "username": userdata.username, "senderID": distribtrID};
+        peerDistribtrS[allData.users[username].currentID].send(JSON.stringify(message));
+        dmHangupButton.style.display = "none";
+        dmCallButton.style.display = "block";
+        dmHangupButton.removeEventListener('click', hangUpCall);
+      };
+
+      dmHangupButton.addEventListener('click', hangUpCall);
+
     }
   }
+
+  // listen for hangup button
+
+  // hang up call
 
 
 
@@ -1116,6 +1155,8 @@
     toastStrong.classList.add('me-auto');
     toastStrong.textContent = username;
     const toastBold = document.createElement('b');
+    toastBold.classList.add('call-button');
+    toastBold.setAttribute('data-dmusername', username);
     const toastPhone = document.createElement('i');
     toastPhone.classList.add('bi');
     toastPhone.classList.add('bi-telephone-fill');
