@@ -694,8 +694,7 @@
             console.log('first DM');
             console.log(dataObj);
             if (dataObj.endCall === true) {
-              const hangUpButton = document.getElementById('hangupButton');
-              hangupButton.click();
+              window.postMessage("hangup");
               return;
             }
             if (typeof peerDistribtrS[dataObj.senderID] === "undefined") {
@@ -844,12 +843,17 @@
       dmHangupButton.append(dmHangupButtonIcon);
       const closeToastButton = document.getElementById('toastContainer').querySelector('.btn-close');
       document.getElementById('toastContainer').querySelector('.toast-header').insertBefore(dmHangupButton, closeToastButton);
-      const hangUpCall = function() {
+
+      function stopAudio() {
         audio.pause();
         const tracks = stream.getTracks();
         tracks.forEach(function(track) {
           track.stop();
         });
+      }
+
+      const hangUpCall = function() {
+        stopAudio();
         const message = {"dm": true, "endCall": true, "message": "", "username": userdata.username, "senderID": distribtrID};
         peerDistribtrS[allData.users[username].currentID].send(JSON.stringify(message));
         dmHangupButton.style.display = "none";
@@ -858,6 +862,11 @@
       };
 
       dmHangupButton.addEventListener('click', hangUpCall);
+      window.addEventListener('message', (event) => {
+        if (event.data === "hangup") {
+          stopAudio();
+        }
+      });
 
     }
   }
