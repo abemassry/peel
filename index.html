@@ -10,16 +10,16 @@
 <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
 <style>
   .navbar-light {
-    background-color: #F5F5DC !important;
+    background-color: #f3efe2 !important;
   }
   .modal-content {
-    background-color: #F5F5DC !important;
+    background-color: #f3efe2 !important;
   }
   #offcanvasRight {
-    background-color: #F5F5DC !important;
+    background-color: #f3efe2 !important;
   }
   #offcanvasLeft {
-    background-color: #F5F5DC !important;
+    background-color: #f3efe2 !important;
   }
   .connection-status-icon {
     color: #e4ba1a;
@@ -38,6 +38,11 @@
   .drop-area.highlight {
     border-color: purple;
     background-color: grey;
+  }
+
+  .emoji {
+    font-size: x-large;
+    vertical-align: sub;
   }
   #gallery {
     margin-top: 10px;
@@ -148,7 +153,7 @@
   }
 
   body {
-    background-color: #F5F5DC !important;
+    background-color: #f3efe2 !important;
   }
 </style>
 </head>
@@ -185,14 +190,38 @@
 
     <div class="row">
       <div class="col d-none d-sm-none d-md-none d-lg-block">
-        About links
+        <div id="desktop-user-info-container">
+
+          <div id="desk-user-image-sidebar">
+            <span id="desk-user-name-sidebar"></span>
+          </div>
+          <div>Change<br />Picture</div>
+          <br /><br />
+          <div class="user-bio" data-bs-toggle="modal" data-bs-target="#userBioModal" id="desk-user-bio-sidebar">
+            User Bio
+          </div>
+          <div class="additional-info">
+            Made with <span class="emoji">&#10084;</span> in New Jersey <br />
+            To support this project <br />check out my other projects:<br /><br />
+            Sign up for an account<br />at <a href="https://www.ireadthisweek.com">https://www.ireadthisweek.com</a><br /><br />
+            Or<br /><br />
+            Purchase an account at <a href="https://wsend.net">https://wsend.net</a><br /><br />
+            Thanks!
+          </div>
+
+        </div>
       </div>
 
       <div id="message-holder" class="col-lg-8">
       </div>
 
       <div class="col d-none d-sm-none d-md-none d-lg-block">
-        Util Links
+        <div id="desktop-app-info-container">
+          Version: <span id="desk-version-string"></span><br />
+          NodeID: <span id="desk-node-id"></span><br />
+          PeerNodeID: <span id="desk-peer-node-id"></span><br/>
+          ConnectedAdditionalPeers: <span id="desk-connected-additional-peers"></span><br />
+        </div>
       </div>
     </div>
 
@@ -261,7 +290,7 @@
       <h5 id="offcanvasRightLabel">Peel</h5>
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body">
+    <div class="offcanvas-body" id="sidebar-right-info">
       Version: <span id="version-string"></span><br />
       NodeID: <span id="node-id"></span><br />
       PeerNodeID: <span id="peer-node-id"></span><br/>
@@ -283,6 +312,15 @@
       <br /><br />
       <div class="user-bio" data-bs-toggle="modal" data-bs-target="#userBioModal" id="user-bio-sidebar">
         User Bio
+      </div>
+      <br /><br /><br />
+      <div class="additional-info">
+        Made with <span class="emoji">&#10084;</span> in New Jersey <br />
+        To support this project <br /> check out my other projects:<br /><br />
+        Sign up for an account at <a href="https://www.ireadthisweek.com">https://www.ireadthisweek.com</a><br />
+        Or<br />
+        Purchase an account at <a href="https://wsend.net">https://wsend.net</a><br />
+        Thanks!
       </div>
     </div>
   </div>
@@ -435,6 +473,7 @@
   window.addEventListener('load', function() {
   const VERSION = "0_16_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
+  document.getElementById("desk-version-string").textContent = VERSION.replace(/_/g, ".");
   var distribtrID = 0;
   var peerDistribtrID = 0;
   const peerDistribtrS = {};
@@ -865,6 +904,8 @@
       window.addEventListener('message', (event) => {
         if (event.data === "hangup") {
           stopAudio();
+          dmHangupButton.style.display = "none";
+          dmCallButton.style.display = "block";
         }
       });
 
@@ -1063,7 +1104,9 @@
         c[i].textContent = "";
       }
       document.getElementById("node-id").textContent = distribtrID;
+      document.getElementById("desk-node-id").textContent = distribtrID;
       document.getElementById("peer-node-id").textContent = peerDistribtrID;
+      document.getElementById("desk-peer-node-id").textContent = peerDistribtrID;
       console.log("about to poll");
       pollForMessages();
       console.log("done poll");
@@ -1323,14 +1366,19 @@
     if (typeof document.getElementsByClassName('card-user-img-link')[0] !== "undefined") {
       document.getElementsByClassName('card-user-img-link')[0].remove();
     }
+    initUserImageBoth(userdata, "");
+    initUserImageBoth(userdata, "desk-");
 
-    const domUserImageDiv = document.getElementById("user-image-sidebar");
+  }
+
+  function initUserImageBoth(userdata, device) {
+    const domUserImageDiv = document.getElementById(`${device}user-image-sidebar`);
     const userimg = document.createElement("img");
     const imglink = document.createElement("a");
     imglink.classList.add("card-user-img-link");
     imglink.setAttribute('data-bs-toggle', "modal");
     imglink.setAttribute('data-bs-target', "#userImageModal");
-    const domUserName = document.getElementById("user-name-sidebar");
+    const domUserName = document.getElementById(`${device}user-name-sidebar`);
     userimg.src = userdata.img;
     // add a href tag to image to open modal to change picture
     userimg.classList.add("card-user-img");
@@ -1344,6 +1392,7 @@
 
   function initBio(bio) {
     document.getElementById("user-bio-sidebar").textContent = bio;
+    document.getElementById("desk-user-bio-sidebar").textContent = bio;
     document.getElementById("bio-modal-textarea").value = bio;
   }
 
