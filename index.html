@@ -111,6 +111,9 @@
   .card-user-link {
     cursor: pointer;
   }
+  .edit-button {
+    float: right;
+  }
 
   .user-bio {
     background-color: white;
@@ -990,11 +993,21 @@
     const newCard = card.cloneNode(true);
     const newHr = hr.cloneNode(true);
     const userNameLink = newCard.getElementsByClassName("card-user-link")[0];
+    const h6 = userNameLink.parentNode;
+    console.log(h6);
     userNameLink.setAttribute('data-bs-username', message.user);
     if (typeof allData.users[message.user] !== "undefined" && typeof allData.users[message.user].img !== "undefined" && allData.users[message.user].img !== null) {
       newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user].img;
     } else {
       newCard.getElementsByClassName("card-user-img")[0].src = defaultUserImage;
+    }
+    if (typeof message.user !== "undefined" && typeof userdata.username !== "undefined" && message.user === userdata.username) {
+      const editButton = document.createElement('button');
+      editButton.classList.add("btn");
+      editButton.classList.add("btn-light");
+      editButton.classList.add("edit-button");
+      editButton.textContent = "Edit";
+      h6.append(editButton);
     }
     const userNameSpan = document.createElement('span');
     userNameSpan.classList.add('card-user-name-span');
