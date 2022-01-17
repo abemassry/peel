@@ -444,6 +444,27 @@
     </div>
   </div>
 
+  <!-- Edit Post Modal -->
+  <div class="modal fade" id="editPostModal" tabindex="-1" role="dialog" aria-labelledby="editPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editPostModalLabel">
+            Edit Post
+          </h5>
+        </div>
+        <div class="modal-body">
+          <div class="container">
+            <textarea class="form-control" id="editpost-modal-textarea" rows="5"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="done-editpost-modal-button" data-bs-dismiss="modal" class="btn btn-success">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Display user bio Modal -->
   <div class="modal fade display-user-bio-modal" id="displayUserBioModal" tabindex="-1" role="dialog" aria-labelledby="displayUserBioModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -969,7 +990,6 @@
   card.append(cardBody);
   card.append(cardFooter);
 
-  const hr = document.createElement("hr");
 
   const messageHolder = document.getElementById("message-holder");
 
@@ -991,7 +1011,7 @@
 
     const message = allData.messages[index];
     const newCard = card.cloneNode(true);
-    const newHr = hr.cloneNode(true);
+    newCard.setAttribute("id", "postid-"+index);
     const userNameLink = newCard.getElementsByClassName("card-user-link")[0];
     const h6 = userNameLink.parentNode;
     console.log(h6);
@@ -1006,6 +1026,9 @@
       editButton.classList.add("btn");
       editButton.classList.add("btn-light");
       editButton.classList.add("edit-button");
+      editButton.setAttribute('data-bs-toggle', "modal");
+      editButton.setAttribute('data-bs-target', "#editPostModal");
+      editButton.setAttribute('data-bs-messageid', index);
       editButton.textContent = "Edit";
       h6.append(editButton);
     }
@@ -1023,7 +1046,6 @@
       newCard.getElementsByClassName("card-post-img-holder")[0].append(postimg);
     }
 
-    messageHolder.prepend(newHr);
     messageHolder.prepend(newCard);
     displayedMessages[index] = true;
   }
@@ -1201,6 +1223,30 @@
       localStorage.setItem('bio', bio);
       sendMessage();
       document.getElementById("user-bio-sidebar").textContent = bio;
+    }
+  });
+
+  document.getElementById("editPostModal").addEventListener("show.bs.modal", function(event) {
+    const editPostModal = document.getElementById("editPostModal");
+    const rt = event.relatedTarget;
+    const messageID = rt.getAttribute("data-bs-messageid");
+
+    const textArea = editPostModal.querySelector("#editpost-modal-textarea");
+    textArea.setAttribute("data-bs-messageid", messageID);
+    textArea.value = allData.messages[messageID].text;
+  });
+
+  document.getElementById("done-editpost-modal-button").addEventListener("click", function() {
+    const textArea = document.getElementById("editpost-modal-textarea");
+    const messageID = textArea.getAttribute("data-bs-messageid");
+    const editedPost = textArea.value;
+    if (editedPost !== "") {
+      const oldCard = document.getElementById("postid-"+messageID);
+      oldCard.remove();
+      allData.messages[messageID].text = editedPost;
+      sendMessage();
+      displayedMessages[messageID] = false;
+      renderMessages(null, messageID);
     }
   });
 
