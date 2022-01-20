@@ -761,20 +761,39 @@
           console.log(dataObj);
           if (dataObj.dm === true) {
             console.log('first DM');
+            console.log('first DM');
+            console.log('first DM');
+            console.log('first DM');
+            console.log('first DM');
+            console.log('first DM');
+            console.log('first DM');
             console.log(dataObj);
             if (dataObj.endCall === true) {
               window.postMessage("hangup");
               return;
             }
+            console.log("before if statement");
             if (typeof peerDistribtrS[dataObj.senderID] === "undefined") {
+              console.log("undefined peer: "+dataObj.senderID);
               dmList.push(dataObj.senderID);
+              console.log("adding symmetric connection: "+dataObj.senderID);
               addSymmetricConnection(dataObj.senderID, "dontSend");
             }
+            console.log("after adding symmetric connection");
             if (typeof document.getElementById("convo-"+dataObj.username) === "undefined" || document.getElementById("convo-"+dataObj.username) === null) {
+              console.log("setting up toast: "+dataObj.username);
               setupToast(dataObj.username);
             }
+            console.log("adding message to convo: "+dataObj.message);
             addMessageToConvo(dataObj.message, dataObj.username);
             return;
+            console.log('end of DM');
+            console.log('end of DM');
+            console.log('end of DM');
+            console.log('end of DM');
+            console.log('end of DM');
+            console.log('end of DM');
+            console.log('end of DM');
           }
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
