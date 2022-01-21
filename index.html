@@ -219,6 +219,11 @@
       </div>
 
       <div id="message-holder" class="col-lg-8">
+        <div id="spinner" class="my-5 mx-auto" style="width: 75px;">
+          <div id="loading-spinner" class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
       </div>
 
       <div class="col d-none d-sm-none d-md-none d-lg-block">
@@ -802,6 +807,8 @@
               allData.users[dataObj.username].lastActive = Date.now();
             }
             if (Object.keys(displayedMessages).length < 1) {
+              const spinner = document.getElementById('spinner');
+              spinner.remove();
               Object.keys(allData.messages).reduce(renderMessages, null);
               userdata.currentID = distribtrID;
               userdata.lastActive = Date.now();
@@ -1163,6 +1170,9 @@
       for (i = 0; i < c.length; i++) {
         c[i].textContent = "";
       }
+      const spinner = document.getElementById('loading-spinner');
+      spinner.classList.remove('text-warning');
+      spinner.classList.add('text-success');
       document.getElementById("node-id").textContent = distribtrID;
       document.getElementById("desk-node-id").textContent = distribtrID;
       document.getElementById("peer-node-id").textContent = peerDistribtrID;
