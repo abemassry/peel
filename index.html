@@ -28,6 +28,9 @@
     font-size: 13px;
     text-align: center;
   }
+  .user-status-icon {
+    margin-left: 5px;
+  }
   .drop-area {
     border: 2px dashed #ccc;
     border-radius: 20px;
@@ -506,7 +509,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_21_0";
+  const VERSION = "0_23_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   document.getElementById("desk-version-string").textContent = VERSION.replace(/_/g, ".");
   let distribtrID = 0;
@@ -548,6 +551,7 @@
 
 
   function mergeData(newAllData) {
+    /*
     for (let key of Object.keys(newAllData.users)) {
       if (typeof allData.users[key] !== "undefined") {
         allData.users[key].username = newAllData.users[key].username;
@@ -567,6 +571,8 @@
         allData.messages[key] = newAllData.messages[key];
       }
     }
+    */
+    allData = newAllData;
     localStorage.setItem('allData', JSON.stringify(allData));
   }
 
@@ -808,7 +814,7 @@
             }
             if (Object.keys(displayedMessages).length < 1) {
               const spinner = document.getElementById('spinner');
-              spinner.remove();
+              spinner.style.display = "none";
               Object.keys(allData.messages).reduce(renderMessages, null);
               userdata.currentID = distribtrID;
               userdata.lastActive = Date.now();
@@ -1063,9 +1069,15 @@
       editButton.textContent = "Edit";
       h6.append(editButton);
     }
+    const userStatusIcon = document.createElement('i');
+    userStatusIcon.classList.add('bi');
+    userStatusIcon.classList.add('bi-circle-fill');
+    userStatusIcon.classList.add('user-status-icon');
+    userStatusIcon.style.color = '#e4ba1a';
     const userNameSpan = document.createElement('span');
     userNameSpan.classList.add('card-user-name-span');
     userNameSpan.append(message.user);
+    userNameSpan.append(userStatusIcon);
     userNameLink.append(userNameSpan);
     //newCard.getElementsByClassName("card-title")[0].append(userNameLink);
     linkify(newCard.getElementsByClassName("card-text")[0], message.text);
@@ -1180,6 +1192,7 @@
       console.log("about to poll");
       pollForMessages();
       console.log("done poll");
+      updateUserStatuses();
     } else {
       let c = document.getElementsByClassName("connection-status");
       let i;
@@ -1195,6 +1208,33 @@
         c[i].textContent = distribtrID;
       }
     }
+  }
+
+  function updateUserStatuses() {
+    console.log('updating user statuses');
+    const cards = document.getElementsByClassName('card');
+    let i;
+    for (i = 0; i < cards.length; i++) {
+      const card = cards[i];
+
+      const username = card.querySelector('.card-user-link').getAttribute('data-bs-username');
+      const userStatusIcon = card.querySelector('.user-status-icon');
+      if ( typeof username !== "undefined"
+        && username !== null
+        && username !== ""
+        && typeof allData.users[username].currentID !== "undefined"
+        && allData.users[username].currentID !== null
+        && allData.users[username].currentID !== ""
+        && allData.users[username].currentID >= 0
+      ) {
+        userStatusIcon.style.color = "#28a745";
+        console.log(`${username} is ${allData.users[username].currentID}`);
+        console.log(allData);
+      } else {
+        userStatusIcon.style.color = "#e4ba1a";
+      }
+
+    };
   }
 
   function displayUserCreate() {

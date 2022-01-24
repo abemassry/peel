@@ -2,10 +2,10 @@
 *Peer to Peer Distributed Serverless Social Network in browser*
 
 ## Requirements
-1. A modern browser
-2. Be a nice person
+1. A modern browser (e.g. Chrome v92+, Firefox v91+, Safari v14.1+)
+2. Be a nice person, in all aspects while using this webapp
 
-## [Try it Now!](https://abemassry.github.io/peel)
+**[Try it Now!](https://abemassry.github.io/peel)**
 https://abemassry.github.io/peel
 
 ## About
@@ -88,3 +88,32 @@ with all members participating in the network a direct message can be
 sent to a peer. Upon sending a direct message an additional WebRTC
 connection is made between the two browsers and a phone call can be
 initiated by either browser over WebRTC.
+
+## Future Work
+
+The future tasks are listed in the ToDo section of the project page for this
+repo [ToDos](https://github.com/abemassry/peel/projects/1)
+
+Longer term goals include:
+* Video Calls
+* Peer to Peer binary transfer
+* Choosing what kind a feed to see based on a follower mechanism
+* Address Book or Recently Contacted list
+* Native App that participates in the WebRTC network
+* Video Broadcasting
+
+## Supporting
+
+If you'd like to support this project:
+
+Sign up for an account at [I Read This Week](https://www.ireadthisweek.com)
+
+Purchase an account at [wsend](https://wsend.net)
+
+I also have a videogame for sale [Rain Drop](https://abemassry.itch.io/rain-drop)
+
+As well as the soundtrack album to go with it [Rain Drop (Original Video Game
+Soundtrack)](https://abemassry.bandcamp.com/album/rain-drop-original-video-game-soundtrack)
+
+When I'm not on Peel, I'm also on Twitter
+[@abemassry](https://twitter.com/abemassry) say hi sometime.
