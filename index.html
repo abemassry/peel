@@ -170,9 +170,7 @@
   <nav class="navbar navbar-custom sticky-top navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
-        <svg height="20" width="20">
-          <circle cx="10" cy="10" r="5" stroke="black" stroke-width="3" fill="beige" />
-        </svg>
+        <img src="https://wsnd.io/mAaxlJxk/peel-logo.png" width="20" height="20" />
         &nbsp;
         Peel
       </a>
@@ -509,7 +507,7 @@
 </body>
 <script>
   window.addEventListener('load', function() {
-  const VERSION = "0_23_0";
+  const VERSION = "0_24_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   document.getElementById("desk-version-string").textContent = VERSION.replace(/_/g, ".");
   let distribtrID = 0;
@@ -565,14 +563,16 @@
         };
       }
     }
-
+    */
     for (let key of Object.keys(newAllData.messages)) {
       if (typeof allData.messages[key] === "undefined") {
         allData.messages[key] = newAllData.messages[key];
       }
     }
-    */
-    allData = newAllData;
+    allData.users = newAllData.users;
+    if (userdata.username) {
+      allData.users[userdata.username] = userdata;
+    }
     localStorage.setItem('allData', JSON.stringify(allData));
   }
 
@@ -1222,6 +1222,7 @@
       if ( typeof username !== "undefined"
         && username !== null
         && username !== ""
+        && typeof allData.users[username] !== "undefined"
         && typeof allData.users[username].currentID !== "undefined"
         && allData.users[username].currentID !== null
         && allData.users[username].currentID !== ""

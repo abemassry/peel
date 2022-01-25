@@ -1,3 +1,4 @@
+![Peel logo](https://wsnd.io/Vq36uXaT/peel-banner.png)
 # Peel
 *Peer to Peer Distributed Serverless Social Network in browser*
 
