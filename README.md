@@ -7,6 +7,7 @@
 2. Be a nice person, in all aspects while using this webapp
 
 **[Try it Now!](https://abemassry.github.io/peel)**
+
 https://abemassry.github.io/peel
 
 ## About
@@ -117,4 +118,4 @@ As well as the soundtrack album to go with it [Rain Drop (Original Video Game
 Soundtrack)](https://abemassry.bandcamp.com/album/rain-drop-original-video-game-soundtrack)
 
 When I'm not on Peel, I'm also on Twitter
-[@abemassry](https://twitter.com/abemassry) say hi sometime.
+[@abemassry](https://twitter.com/abemassry), say hi sometime.
