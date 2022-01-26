@@ -15,12 +15,15 @@ Peel is a peer to peer, distributed, serverless, social network that
 operates entirely in a browser.
 
 "Main Feed" view
+
 ![image-of-post-view](https://wsnd.io/rNIGzxfi/screenshot.png)
 
 You can create a User
+
 ![image-of-user-create](https://wsnd.io/BTxTDb89/screenshot.png)
 
 Make a post
+
 ![image-of-make-a-post](https://wsnd.io/RGmf2ux1/screenshot.png)
 
 
@@ -29,9 +32,11 @@ All communication is browser to browser
 The main feed is persistent via Local Storage
 
 You can also send direct messages
+
 ![image-of-dm](https://wsnd.io/lR3pOfVV/screenshot.png)
 
 And make phone calls
+
 ![image-of-phone-call](https://wsnd.io/Swtm0VqW/screenshot.png)
 
 Direct Messages are not persistent and not logged anywhere, they only
