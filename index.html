@@ -751,7 +751,7 @@
         peerDistribtrID++;
         reconnectPeer();
         return;
-      }, 2000);
+      }, 1000);
       return;
     });
     //peerConn.send('hi from server');
@@ -925,7 +925,7 @@
       peerDistribtrID = 0;
       setTimeout(function() {
         reconnectSetup();
-      }, 1000);
+      }, 480);
       return;
     });
 
@@ -1732,5 +1732,13 @@ function sleep(ms) {
 }
 
 
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-L6D966DPB1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-L6D966DPB1');
 </script>
 </html>
