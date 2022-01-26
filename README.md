@@ -14,30 +14,44 @@ https://abemassry.github.io/peel
 Peel is a peer to peer, distributed, serverless, social network that
 operates entirely in a browser.
 
+"Main Feed" view
+![image-of-post-view](https://wsnd.io/rNIGzxfi/screenshot.png)
+
 You can create a User
-![image-of-user-create](link/to/user/create)
+![image-of-user-create](https://wsnd.io/BTxTDb89/screenshot.png)
 
 Make a post
-![image-of-make-a-post](link/to/make/a/post)
+![image-of-make-a-post](https://wsnd.io/RGmf2ux1/screenshot.png)
 
-And see others posts
-![image-of-post-view](link/to/post/view)
 
 All communication is browser to browser
 
 The main feed is persistent via Local Storage
 
 You can also send direct messages
-![image-of-dm](/link/to/dm)
+![image-of-dm](https://wsnd.io/lR3pOfVV/screenshot.png)
 
 And make phone calls
-![image-of-phone-call](/link/to/phonecall)
+![image-of-phone-call](https://wsnd.io/Swtm0VqW/screenshot.png)
 
 Direct Messages are not persistent and not logged anywhere, they only
 exist between two browsers
 
 Phone calls are not recorded they are only an audio connection between
 two browsers
+
+## Code Layout and Style
+
+The entire app is in one HTML file, I wanted to start small and grow from there
+but like a lot of projects when I started working on it the scope blew up. So
+in the future the code might be broken up into multiple files and there may or
+maynot be a build process.
+
+The CSS framework is Bootstrap, the JavaScript framework is Vanilla.js.
+
+The project might choose a different JavaScript framework in the future.
+
+The app in general was coded mobile first and desktop secondary.
 
 ## The Peel Protocol
 
@@ -103,6 +117,7 @@ Longer term goals include:
 * Address Book or Recently Contacted list
 * Native App that participates in the WebRTC network
 * Video Broadcasting
+* Larger scale JavaScript framework
 
 ## Supporting
 
