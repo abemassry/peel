@@ -10,6 +10,25 @@
 
 https://abemassry.github.io/peel
 
+## Install
+Peel is a mobile first webapp that can be installed to a mobile device to
+appear to behave like a native app. Here are the installation instructions.
+These are screenshots of iOS, Android should be very similar
+
+Tap the share icon
+
+![image-of-share-icon](https://wsnd.io/9zBALN80/share-button.jpeg)
+
+Tap add to home screen
+
+![add-to-home-screen](https://wsnd.io/Yqupnzss/install-to-homescreen.jpeg)
+
+Tap Add in the upper right hand corner
+
+![install-to-home-screen](https://wsnd.io/8fdsyzaW/install-screenshot.png)
+
+It's installed!
+
 ## About
 Peel is a peer to peer, distributed, serverless, social network that
 operates entirely in a browser.
