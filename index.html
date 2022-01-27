@@ -731,6 +731,12 @@ function debug_log(msg) {
       reconnectPeer();
       return;
     }
+    // if this is the first run spread out inital connections so they
+    // don't all pool up at 0
+    if (connected === false && distribtrID > 4 && peerDistribtrID == 0) {
+      peerDistribtrID = getRandomInt(4);
+    }
+
     firstTryPeer = false;
     var peerError = false;
     debug_log("attempting peer connection "+peerDistribtrID);
@@ -760,7 +766,7 @@ function debug_log(msg) {
         peerDistribtrID++;
         reconnectPeer();
         return;
-      }, 1000);
+      }, 600);
       return;
     });
     //peerConn.send('hi from server');
