@@ -518,8 +518,14 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
 <script>
+const DEBUG = true;
+function debug_log(msg) {
+  if (DEBUG) {
+    console.log(msg);
+  }
+}
   window.addEventListener('load', function() {
-  const VERSION = "0_25_0";
+  const VERSION = "0_26_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   document.getElementById("desk-version-string").textContent = VERSION.replace(/_/g, ".");
   let distribtrID = 0;
@@ -558,6 +564,7 @@
   if (localStorage.getItem('bio')) {
     initBio(localStorage.getItem('bio'));
   }
+
 
 
   function mergeData(newAllData) {
@@ -629,8 +636,8 @@
       "peers": [distribtrID],
       "username": userdata.username
     };
-    console.log(dataToSend);
-    console.log('sending');
+    debug_log(dataToSend);
+    debug_log('sending');
     peerConn.send(JSON.stringify(dataToSend));
     for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
       newPeerConn.send(JSON.stringify(dataToSend));
@@ -645,8 +652,8 @@
       "message": allData,
       "peers": [distribtrID]
     };
-    console.log(dataToSend);
-    console.log('sendAllDataToPeer: sending');
+    debug_log(dataToSend);
+    debug_log('sendAllDataToPeer: sending');
     peerConn.send(JSON.stringify(dataToSend));
   }
 
@@ -658,8 +665,8 @@
       "message": allData,
       "peers": [distribtrID]
     };
-    console.log(dataToSend);
-    console.log('sendAllDataToOneFan: sending');
+    debug_log(dataToSend);
+    debug_log('sendAllDataToOneFan: sending');
 
     if (typeof peerDistribtrS[fanID] === "undefined") {
       delete peerDistribtrS[fanID]
@@ -676,24 +683,24 @@
       "username": userdata.username,
       "ping": true
     };
-    console.log("polling for messages");
+    debug_log("polling for messages");
     peerConn.send(JSON.stringify(dataToSend));
-    console.log("finished polling for messages");
+    debug_log("finished polling for messages");
   }
 
   function addSymmetricConnection(newID, newDataObj) {
     let peerError = false;
-    console.log(peerDistribtrS);
-    console.log("attempting new peer connection "+newID);
+    debug_log(peerDistribtrS);
+    debug_log("attempting new peer connection "+newID);
     const pConn = peer.connect(VERSION+'_Distribtr' + newID);
     // on open will be launch when you successfully connect to PeerServer
     pConn.on('open', function(){
       // here you have conn.id
-      console.log("attempting connection, reconnectPeer open");
-      console.log(distribtrID);
+      debug_log("attempting connection, reconnectPeer open");
+      debug_log(distribtrID);
       peerDistribtrS[newID] = pConn;
-      console.log("peerDistribtrS:");
-      console.log(peerDistribtrS);
+      debug_log("peerDistribtrS:");
+      debug_log(peerDistribtrS);
       connected = true;
       updateConnectionStatus();
       if (newDataObj !== "dontSend") {
@@ -701,9 +708,9 @@
       }
     });
     pConn.on('error', function(err){
-      console.log("got an error pConn");
+      debug_log("got an error pConn");
       peerError = true;
-      console.log(err);
+      debug_log(err);
       pConn.close();
       delete peerDistribtrS[newID];
       updateConnectionStatus();
@@ -726,14 +733,14 @@
     }
     firstTryPeer = false;
     var peerError = false;
-    console.log("attempting peer connection "+peerDistribtrID);
+    debug_log("attempting peer connection "+peerDistribtrID);
     peerConn = peer.connect(VERSION+'_Distribtr' + peerDistribtrID);
     // on open will be launch when you successfully connect to PeerServer
-    console.log(peerConn);
+    debug_log(peerConn);
     peerConn.on('open', function(){
       // here you have conn.id
-      console.log("attempting connection, reconnectPeer open");
-      console.log(distribtrID);
+      debug_log("attempting connection, reconnectPeer open");
+      debug_log(distribtrID);
       //setInterval(pollForMessages, 5000);
       connected = true;
       updateConnectionStatus();
@@ -744,11 +751,11 @@
 
     });
     peerConn.on('error', function(err){
-      console.log("got an error peerConn");
+      debug_log("got an error peerConn");
       peerError = true;
       connected = false;
       updateConnectionStatus();
-      console.log(err);
+      debug_log(err);
       setTimeout(function() {
         peerDistribtrID++;
         reconnectPeer();
@@ -766,11 +773,11 @@
 
   function reconnectSetup() {
     firstTry = false;
-    console.log("reconnectSetup");
+    debug_log("reconnectSetup");
     namespaceID = VERSION + "_Distribtr" + distribtrID
     peer = new Peer(namespaceID);
     peer.on('open', function(namespaceID) {
-      console.log('reconnection My peer ID is: ' + namespaceID);
+      debug_log('reconnection My peer ID is: ' + namespaceID);
       localStorage.setItem("sequential_peer_id", namespaceID);
       // send event for trying to connect to other peers
       reconnectPeer();
@@ -780,43 +787,36 @@
         if (connected) {
           var sendList = {};
           var dataObj = JSON.parse(data);
-          console.log("got:");
-          console.log(dataObj);
+          debug_log("got:");
+          debug_log(dataObj);
           if (dataObj.dm === true) {
-            console.log('first DM');
-            console.log('first DM');
-            console.log('first DM');
-            console.log('first DM');
-            console.log('first DM');
-            console.log('first DM');
-            console.log('first DM');
-            console.log(dataObj);
+            debug_log('first DM');
+            debug_log('first DM');
+            debug_log('first DM');
+            debug_log('first DM');
+            debug_log('first DM');
+            debug_log('first DM');
+            debug_log('first DM');
+            debug_log(dataObj);
             if (dataObj.endCall === true) {
               window.postMessage("hangup");
               return;
             }
-            console.log("before if statement");
+            debug_log("before if statement");
             if (typeof peerDistribtrS[dataObj.senderID] === "undefined") {
-              console.log("undefined peer: "+dataObj.senderID);
+              debug_log("undefined peer: "+dataObj.senderID);
               dmList.push(dataObj.senderID);
-              console.log("adding symmetric connection: "+dataObj.senderID);
+              debug_log("adding symmetric connection: "+dataObj.senderID);
               addSymmetricConnection(dataObj.senderID, "dontSend");
             }
-            console.log("after adding symmetric connection");
+            debug_log("after adding symmetric connection");
             if (typeof document.getElementById("convo-"+dataObj.username) === "undefined" || document.getElementById("convo-"+dataObj.username) === null) {
-              console.log("setting up toast: "+dataObj.username);
+              debug_log("setting up toast: "+dataObj.username);
               setupToast(dataObj.username);
             }
-            console.log("adding message to convo: "+dataObj.message);
+            debug_log("adding message to convo: "+dataObj.message);
             addMessageToConvo(dataObj.message, dataObj.username);
             return;
-            console.log('end of DM');
-            console.log('end of DM');
-            console.log('end of DM');
-            console.log('end of DM');
-            console.log('end of DM');
-            console.log('end of DM');
-            console.log('end of DM');
           }
           if (typeof dataObj.ping === "undefined") {
             mergeData(dataObj.message);
@@ -841,7 +841,7 @@
               allData.users[dataObj.username].currentID = dataObj.originator;
               allData.users[dataObj.username].lastActive = Date.now();
             }
-            console.log(dataObj);
+            debug_log(dataObj);
             if (dataObj.src_peer_id === peerDistribtrID) {
               sendAllDataToPeer();
             } else {
@@ -859,12 +859,12 @@
             // send fanout
             //for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
             //  if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined" && dmList.includes(dataObj.src_peer_id) === false) {
-            //    console.log("fanout");
-            //    console.log(peerDistribtrS);
-            //    console.log(newDataObj);
-            //    console.log('being sent');
-            //    console.log("sending from: "+ distribtrID+ ", to: "+newID);
-            //    console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
+            //    debug_log("fanout");
+            //    debug_log(peerDistribtrS);
+            //    debug_log(newDataObj);
+            //    debug_log('being sent');
+            //    debug_log("sending from: "+ distribtrID+ ", to: "+newID);
+            //    debug_log("dataObj.src_peer_id: "+dataObj.src_peer_id);
             //    //if (newPeerConn !== null) {
             //    //  newPeerConn.send(JSON.stringify(newDataObj));
             //    //}
@@ -873,16 +873,16 @@
             //}
 
             if (dataObj.src_peer_id !== peerDistribtrID && dataObj.originator !== peerDistribtrID && dataObj.src_peer_id !== distribtrID && dataObj.originator !== distribtrID) {
-              console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
-              console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
+              debug_log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
+              debug_log("dataObj.src_peer_id: "+dataObj.src_peer_id);
               peerConn.send(JSON.stringify(newDataObj));
-              console.log("new peer found me");
-              console.log(dataObj.src_peer_id);
+              debug_log("new peer found me");
+              debug_log(dataObj.src_peer_id);
               let idCount = 0;
               let found = false;
               for (const [id, pc] of Object.entries(peerDistribtrS)) {
                 idCount++;
-                console.log("for: "+id);
+                debug_log("for: "+id);
                 if (dataObj.src_peer_id === id) {
                   found = true;
                   next;
@@ -894,8 +894,8 @@
 
               for (const [newID, newPeerConn] of Object.entries(peerDistribtrS)) {
                 if (dataObj.src_peer_id !== newID && typeof sendList[newID] === "undefined") {
-                  console.log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
-                  console.log("dataObj.src_peer_id: "+dataObj.src_peer_id);
+                  debug_log("sending from: "+ distribtrID+ ", to: "+peerDistribtrID);
+                  debug_log("dataObj.src_peer_id: "+dataObj.src_peer_id);
                   newPeerConn.send(JSON.stringify(newDataObj));
                   sendList[newID] = true;
                 }
@@ -911,18 +911,18 @@
         try {
           stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
           call.answer(stream); // Answer the call with an A/V stream.
-          console.log("answering call");
+          debug_log("answering call");
           call.on('stream', onReceiveStream);
         } catch(err) {
-          console.log('Failed to get local stream' ,err);
+          debug_log('Failed to get local stream' ,err);
         }
       });
     });
     peer.on('error', function(err) {
-      console.log(err);
+      debug_log(err);
       connected = false;
       updateConnectionStatus();
-      console.log("got an error reconnectSetup");
+      debug_log("got an error reconnectSetup");
       distribtrID++;
       peerDistribtrID = 0;
       setTimeout(function() {
@@ -934,12 +934,12 @@
   }
 
   function onReceiveStream(stream) {
-    console.log('recieved call');
+    debug_log('recieved call');
     const audio = document.createElement('audio');
     audio.setAttribute('id', 'phone-call');
     audio.srcObject = stream;
     audio.onloadedmetadata = function(e) {
-      console.log('now playing the audio');
+      debug_log('now playing the audio');
       audio.play();
       // turn call button into hangup button
       const dmCallButton = document.getElementById('toastContainer').querySelector('b');
@@ -1063,7 +1063,7 @@
     newCard.setAttribute("id", "postid-"+index);
     const userNameLink = newCard.getElementsByClassName("card-user-link")[0];
     const h6 = userNameLink.parentNode;
-    console.log(h6);
+    debug_log(h6);
     userNameLink.setAttribute('data-bs-username', message.user);
     if (typeof allData.users[message.user] !== "undefined" && typeof allData.users[message.user].img !== "undefined" && allData.users[message.user].img !== null) {
       newCard.getElementsByClassName("card-user-img")[0].src = allData.users[message.user].img;
@@ -1106,7 +1106,7 @@
   }
 
   if (allData.messages.length > 0) {
-    console.log("about to render");
+    debug_log("about to render");
     Object.keys(allData.messages).reduceRight(renderMessages, null);
   }
 
@@ -1149,8 +1149,8 @@
 
   document.getElementById("post-modal-button").onclick = function() {
     const postContent = document.getElementById("post-modal-textarea").value;
-    console.log("post pressed");
-    console.log(postContent);
+    debug_log("post pressed");
+    debug_log(postContent);
     const now = Date.now();
     const strNow = now.toString() + getRandomInt(9).toString();
     const nowInt = parseInt(strNow);
@@ -1172,15 +1172,15 @@
       document.getElementById("drop-post-img").remove();
       document.getElementById("drop-post-img-container").remove();
     }
-    console.log(allData);
+    debug_log(allData);
     Object.keys(allData.messages).reduceRight(renderMessages, null);
     sendMessage();
   };
 
   function updateConnectionStatus() {
-    console.log("updating connection status");
+    debug_log("updating connection status");
     if (connected) {
-      console.log("connected inside updateConnectionStatus");
+      debug_log("connected inside updateConnectionStatus");
       let c = document.getElementsByClassName("connection-status");
       let i;
       for (i = 0; i < c.length; i++) {
@@ -1201,9 +1201,9 @@
       document.getElementById("desk-node-id").textContent = distribtrID;
       document.getElementById("peer-node-id").textContent = peerDistribtrID;
       document.getElementById("desk-peer-node-id").textContent = peerDistribtrID;
-      console.log("about to poll");
+      debug_log("about to poll");
       pollForMessages();
-      console.log("done poll");
+      debug_log("done poll");
       updateUserStatuses();
     } else {
       let c = document.getElementsByClassName("connection-status");
@@ -1223,7 +1223,7 @@
   }
 
   function updateUserStatuses() {
-    console.log('updating user statuses');
+    debug_log('updating user statuses');
     const cards = document.getElementsByClassName('card');
     let i;
     for (i = 0; i < cards.length; i++) {
@@ -1241,8 +1241,8 @@
         && allData.users[username].currentID >= 0
       ) {
         userStatusIcon.style.color = "#28a745";
-        console.log(`${username} is ${allData.users[username].currentID}`);
-        console.log(allData);
+        debug_log(`${username} is ${allData.users[username].currentID}`);
+        debug_log(allData);
       } else {
         userStatusIcon.style.color = "#e4ba1a";
       }
@@ -1455,8 +1455,8 @@
     toastConversationArea.setAttribute('id', "convo-"+username);
     const dmSendButton = toastContainer.querySelector('.dm-send');
     const remoteID = allData.users[username].currentID;
-    console.log('do we have remote ID');
-    console.log(remoteID);
+    debug_log('do we have remote ID');
+    debug_log(remoteID);
     dmSendButton.addEventListener('click', async function() {
       if (typeof peerDistribtrS[remoteID] === "undefined") {
         dmList.push(remoteID);
@@ -1467,7 +1467,7 @@
       dmItem.textContent = userdata.username + ": " + dmInput.value;
       toastConversationArea.append(dmItem);
       const message = {"dm": true, "message": dmInput.value, "username": userdata.username, "senderID": distribtrID};
-      console.log(peerDistribtrS);
+      debug_log(peerDistribtrS);
       while (typeof peerDistribtrS[remoteID] === "undefined") {
         await sleep(500);
       }
@@ -1481,10 +1481,10 @@
         stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
 
         const call = peer.call(VERSION+'_Distribtr' + remoteID, stream);
-        console.log('calling now');
+        debug_log('calling now');
         call.on('stream', onReceiveStream);
       } catch(err) {
-        console.log('Failed to get local stream' ,err);
+        debug_log('Failed to get local stream' ,err);
       }
 
     });
@@ -1550,7 +1550,7 @@
 let dropAreas = document.getElementsByClassName("drop-area-userimg");
 
 Array.from(dropAreas).forEach((dropArea) => {
-  console.log("the foreach works");
+  debug_log("the foreach works");
   // Prevent default drag behaviors
   ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropArea.addEventListener(eventName, preventDefaults, false)
@@ -1707,9 +1707,9 @@ async function upload(file0) {
       body: 'start=1'
     });
     uid = await response.text();
-    console.log(uid);
+    debug_log(uid);
     if (uid === '') {
-      console.log('uid empty');
+      debug_log('uid empty');
       return '';
     }
   }
