@@ -733,7 +733,7 @@ function debug_log(msg) {
     }
     // if this is the first run spread out inital connections so they
     // don't all pool up at 0
-    if (connected === false && distribtrID > 4 && peerDistribtrID == 0) {
+    if (connected === false && distribtrID > 4 && peerDistribtrID === 0) {
       peerDistribtrID = getRandomInt(4);
     }
 
