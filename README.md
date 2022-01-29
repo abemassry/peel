@@ -140,6 +140,7 @@ Longer term goals include:
 * Choosing what kind a feed to see based on a follower mechanism
 * Address Book or Recently Contacted list
 * Native App that participates in the WebRTC network
+* Group audio calls
 * Video Broadcasting
 * Larger scale JavaScript framework
 
