@@ -525,7 +525,7 @@ function debug_log(msg) {
   }
 }
   window.addEventListener('load', function() {
-  const VERSION = "0_32_0";
+  const VERSION = "0_33_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   document.getElementById("desk-version-string").textContent = VERSION.replace(/_/g, ".");
   let distribtrID = 0;
@@ -781,12 +781,12 @@ function debug_log(msg) {
     firstTry = false;
     debug_log("reconnectSetup");
     namespaceID = VERSION + "_Distribtr" + distribtrID
-    peer = new Peer(namespaceID,
+    peer = new Peer(namespaceID, {
       config: {'iceServers': [
         { url: 'stun:stun.l.google.com:19302' },
         { url: 'turn:homeo@turn.bistri.com:80', credential: 'homeo' }
       ]} /* Sample servers, please use appropriate ones */
-    );
+    });
     peer.on('open', function(namespaceID) {
       debug_log('reconnection My peer ID is: ' + namespaceID);
       localStorage.setItem("sequential_peer_id", namespaceID);
