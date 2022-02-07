@@ -525,12 +525,11 @@ function debug_log(msg) {
   }
 }
   window.addEventListener('load', function() {
-  const VERSION = "0_42_0";
+  const VERSION = "0_43_0";
   document.getElementById("version-string").textContent = VERSION.replace(/_/g, ".");
   document.getElementById("desk-version-string").textContent = VERSION.replace(/_/g, ".");
   let distribtrID = 0;
   let peerDistribtrID = 0;
-  let lowReloadCheck = false;
   const peerDistribtrS = {};
   const currentConnectedIDs = {};
   const dmList = [];
@@ -736,12 +735,6 @@ function debug_log(msg) {
     // don't all pool up at 0
     if (connected === false && distribtrID > 4 && peerDistribtrID === 0) {
       peerDistribtrID = getRandomInt(4);
-    }
-    if (lowReloadCheck === false && distribtrID < 4) {
-      lowReloadCheck = true;
-      setTimeout(function() {
-        location.reload();
-      }, 1800000);
     }
 
     firstTryPeer = false;
